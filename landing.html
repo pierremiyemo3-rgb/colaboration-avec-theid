@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0a0015">
+  <title>Morgan BetPro — IA Football Predictions</title>
+  <meta name="description" content="Morgan BetPro — Picks quotidiens, Analyse IA Gemini, Value Bets. La data au service de vos paris sportifs.">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --violet: #a78bfa; --violet2: #7c3aed;
+      --vdim: rgba(167,139,250,0.10); --bv: rgba(139,92,246,0.15);
+      --or: #d4af37; --or2: #f5c842;
+      --odim: rgba(212,175,55,0.10); --bo: rgba(212,175,55,0.18);
+      --text: #f3f4f6; --text2: #9ca3af;
+      --green: #4ade80; --red: #f87171; --blue: #60a5fa;
+      --border: rgba(255,255,255,0.06);
+    }
+    html { scroll-behavior: smooth; overflow-x: hidden; }
+    body {
+      background: linear-gradient(160deg, #0a0015 0%, #060010 50%, #0a0800 100%);
+      background-attachment: fixed;
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* ── Fond ── */
+    .bg-img {
+      position: fixed; inset: 0; z-index: 0;
+      background: url('https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=1920&q=70') center/cover no-repeat;
+      opacity: 0.10;
+    }
+    .bg-overlay {
+      position: fixed; inset: 0; z-index: 1;
+      background: linear-gradient(160deg, rgba(10,0,21,0.7) 0%, rgba(6,0,16,0.85) 50%, rgba(10,8,0,0.9) 100%);
+    }
+    .content { position: relative; z-index: 2; }
+
+    /* ── HEADER ── */
+    .l-header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px;
+      background: rgba(10,0,21,0.85); backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .l-header::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+      height: 1px; background: linear-gradient(90deg, var(--violet), var(--or));
+    }
+    .l-logo {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none;
+    }
+    .l-logo-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--violet2), var(--or));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; box-shadow: 0 0 20px rgba(167,139,250,0.3);
+    }
+    .l-logo-name {
+      font-family: 'Orbitron', monospace;
+      font-size: 13px; font-weight: 900; letter-spacing: 2px;
+      background: linear-gradient(90deg, #fff, var(--or));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .btn-login {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 18px;
+      background: var(--vdim); border: 1px solid var(--bv);
+      color: var(--violet); border-radius: 10px;
+      font-family: 'Orbitron', monospace; font-size: 9px; font-weight: 700;
+      cursor: pointer; text-decoration: none; letter-spacing: 1px;
+      transition: all .2s;
+    }
+    .btn-login:hover { background: rgba(167,139,250,0.2); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding: 100px 24px 80px;
+      position: relative;
+    }
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(167,139,250,0.06); border: 1px solid rgba(167,139,250,0.2);
+      border-radius: 100px; padding: 8px 20px; margin-bottom: 32px;
+      font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 3px; color: var(--violet);
+      animation: fadeUp .8s ease both;
+    }
+    .hero-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--violet); box-shadow: 0 0 10px var(--violet);
+      animation: pulse-dot 2s infinite;
+    }
+    @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    .hero-title {
+      font-size: clamp(32px, 8vw, 72px);
+      font-weight: 900; line-height: 1.05; letter-spacing: -2px;
+      margin-bottom: 20px;
+      animation: fadeUp .8s .1s ease both;
+    }
+    .hero-title .grad {
+      background: linear-gradient(90deg, #fff 0%, var(--violet) 50%, var(--or) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero-sub {
+      font-size: 15px; color: var(--text2);
+      line-height: 1.8; max-width: 500px; margin: 0 auto 40px;
+      animation: fadeUp .8s .2s ease both;
+    }
+    .hero-btns {
+      display: flex; gap: 12px; flex-wrap: wrap;
+      justify-content: center;
+      animation: fadeUp .8s .3s ease both;
+    }
+    .btn-cta-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 15px 32px; border-radius: 14px;
+      background: linear-gradient(135deg, var(--violet2), var(--or));
+      border: none; color: #fff;
+      font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 700; letter-spacing: 2px;
+      cursor: pointer; text-decoration: none; transition: all .3s;
+      box-shadow: 0 8px 32px rgba(124,58,237,0.35);
+    }
+    .btn-cta-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(124,58,237,0.45); }
+    .btn-cta-secondary {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 15px 28px; border-radius: 14px;
+      background: transparent; border: 1px solid rgba(167,139,250,0.3);
+      color: var(--text2);
+      font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 700; letter-spacing: 2px;
+      cursor: pointer; text-decoration: none; transition: all .3s;
+    }
+    .btn-cta-secondary:hover { border-color: var(--violet); color: var(--violet); }
+
+    @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+    /* ── COMPTEURS ── */
+    .counters {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 20px; overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.06);
+      margin: -40px 24px 80px;
+      position: relative; z-index: 3;
+    }
+    .counter-item {
+      background: rgba(10,0,21,0.9); backdrop-filter: blur(16px);
+      padding: 28px 16px; text-align: center;
+    }
+    .counter-val {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(22px, 5vw, 36px); font-weight: 900;
+      background: linear-gradient(90deg, var(--violet), var(--or));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+    .counter-lbl { font-size: 9px; color: var(--text2); font-family: 'Orbitron', monospace; letter-spacing: 1px; line-height: 1.4; }
+
+    /* ── SECTIONS ── */
+    .section { padding: 80px 24px; max-width: 560px; margin: 0 auto; }
+    .section-tag { font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 4px; color: var(--violet); opacity: .7; margin-bottom: 10px; text-align: center; }
+    .section-title { font-size: clamp(24px, 5vw, 36px); font-weight: 900; text-align: center; margin-bottom: 10px; background: linear-gradient(90deg, #fff 40%, var(--violet)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .section-sub { font-size: 13px; color: var(--text2); text-align: center; line-height: 1.7; margin-bottom: 40px; }
+
+    /* ── FEATURES GRID ── */
+    .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .feat-card {
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px; padding: 20px; position: relative; overflow: hidden;
+      transition: all .2s;
+    }
+    .feat-card:hover { transform: translateY(-2px); border-color: var(--bv); }
+    .feat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+    .feat-card:nth-child(1)::before { background: linear-gradient(90deg, var(--violet), transparent); }
+    .feat-card:nth-child(2)::before { background: linear-gradient(90deg, var(--or), transparent); }
+    .feat-card:nth-child(3)::before { background: linear-gradient(90deg, var(--green), transparent); }
+    .feat-card:nth-child(4)::before { background: linear-gradient(90deg, var(--blue), transparent); }
+    .feat-icon { font-size: 28px; margin-bottom: 12px; }
+    .feat-title { font-family: 'Orbitron', monospace; font-size: 9px; font-weight: 900; letter-spacing: 1px; margin-bottom: 8px; }
+    .feat-card:nth-child(1) .feat-title { color: var(--violet); }
+    .feat-card:nth-child(2) .feat-title { color: var(--or); }
+    .feat-card:nth-child(3) .feat-title { color: var(--green); }
+    .feat-card:nth-child(4) .feat-title { color: var(--blue); }
+    .feat-sub { font-size: 11px; color: var(--text2); line-height: 1.6; }
+
+    /* ── STEPS ── */
+    .steps { display: flex; flex-direction: column; gap: 14px; }
+    .step {
+      display: flex; align-items: flex-start; gap: 14px;
+      background: rgba(255,255,255,0.03); border: 1px solid var(--bv);
+      border-radius: 14px; padding: 16px;
+    }
+    .step-num {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--violet2), var(--or));
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Orbitron', monospace; font-size: 14px; font-weight: 900;
+      color: #fff; flex-shrink: 0;
+    }
+    .step-title { font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+    .step-sub { font-size: 11px; color: var(--text2); line-height: 1.5; }
+
+    /* ── PICKS APERÇU ── */
+    .pick-prev {
+      background: rgba(255,255,255,0.03); border: 1px solid var(--bv);
+      border-radius: 14px; padding: 14px; margin-bottom: 10px;
+      position: relative; overflow: hidden;
+    }
+    .pick-prev::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--violet), transparent); }
+    .pp-top { display: flex; justify-content: space-between; margin-bottom: 8px; }
+    .pp-league { font-size: 9px; font-weight: 700; color: var(--violet); background: var(--vdim); border: 1px solid var(--bv); padding: 2px 8px; border-radius: 5px; }
+    .pp-time { font-size: 10px; color: var(--text2); }
+    .pp-match { font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+    .pp-bottom { display: flex; align-items: center; justify-content: space-between; }
+    .pp-market { font-size: 10px; font-weight: 700; color: var(--violet); background: var(--vdim); border: 1px solid var(--bv); padding: 3px 10px; border-radius: 14px; }
+    .pp-pct { font-family: 'Orbitron', monospace; font-size: 18px; font-weight: 900; background: linear-gradient(90deg, var(--violet), var(--or)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .pick-prev.locked .pp-match { filter: blur(5px); user-select: none; }
+    .lock-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(10,0,21,0.55); backdrop-filter: blur(1px); border-radius: 14px; }
+    .lock-box { display: flex; align-items: center; gap: 8px; background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.3); border-radius: 10px; padding: 8px 16px; }
+    .lock-text { font-family: 'Orbitron', monospace; font-size: 9px; font-weight: 700; color: var(--or); }
+
+    /* ── PLANS ── */
+    .plans { display: flex; flex-direction: column; gap: 12px; }
+    .plan {
+      background: rgba(255,255,255,0.03); border: 1px solid var(--bv);
+      border-radius: 16px; padding: 16px; position: relative; overflow: hidden;
+    }
+    .plan::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+    .plan.starter::before { background: linear-gradient(90deg, var(--green), transparent); }
+    .plan.featured { border-color: rgba(167,139,250,0.3); background: rgba(167,139,250,0.04); }
+    .plan.featured::before { background: linear-gradient(90deg, var(--violet), var(--or)); }
+    .plan.vip { border-color: rgba(212,175,55,0.3); background: rgba(212,175,55,0.04); }
+    .plan.vip::before { background: linear-gradient(90deg, var(--or), var(--violet)); }
+    .plan-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .plan-name { font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 900; }
+    .plan.starter .plan-name { color: var(--green); }
+    .plan.featured .plan-name { color: var(--violet); }
+    .plan.vip .plan-name { color: var(--or); }
+    .plan-price { font-family: 'Orbitron', monospace; font-size: 18px; font-weight: 900; }
+    .plan.starter .plan-price { color: var(--green); }
+    .plan.featured .plan-price { color: var(--violet); }
+    .plan.vip .plan-price { color: var(--or); }
+    .plan-badge { font-family: 'Orbitron', monospace; font-size: 7px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+    .pb-pop { background: var(--vdim); color: var(--violet); border: 1px solid var(--bv); }
+    .pb-vip { background: var(--odim); color: var(--or); border: 1px solid var(--bo); }
+    .plan-feats { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+    .pf { font-size: 9px; color: var(--text2); background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 8px; }
+    .btn-plan { width: 100%; padding: 11px; border-radius: 10px; border: none; font-family: 'Orbitron', monospace; font-size: 9px; font-weight: 700; letter-spacing: 1px; cursor: pointer; text-decoration: none; display: block; text-align: center; }
+    .plan.starter .btn-plan { background: linear-gradient(135deg, #16a34a, #4ade80); color: #fff; }
+    .plan.featured .btn-plan { background: linear-gradient(135deg, var(--violet2), var(--violet)); color: #fff; }
+    .plan.vip .btn-plan { background: linear-gradient(135deg, var(--or), var(--or2)); color: #0a0800; }
+
+    /* ── TÉMOIGNAGES ── */
+    .temos { display: flex; flex-direction: column; gap: 12px; }
+    .temo {
+      background: rgba(255,255,255,0.03); border: 1px solid var(--bv);
+      border-radius: 14px; padding: 16px;
+    }
+    .temo-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .temo-avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--violet), var(--or)); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+    .temo-name { font-size: 13px; font-weight: 800; color: var(--text); margin-bottom: 2px; }
+    .temo-plan { font-size: 9px; font-weight: 700; color: var(--violet); font-family: 'Orbitron', monospace; }
+    .temo-stars { color: var(--or); font-size: 12px; margin-bottom: 8px; }
+    .temo-text { font-size: 12px; color: var(--text2); line-height: 1.6; font-style: italic; }
+
+    /* ── TRUST BADGES ── */
+    .trust-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .trust-badge { background: rgba(255,255,255,0.03); border: 1px solid var(--bv); border-radius: 10px; padding: 12px; display: flex; align-items: center; gap: 8px; }
+    .tb-icon { font-size: 18px; flex-shrink: 0; }
+    .tb-text strong { color: var(--text); display: block; font-size: 11px; margin-bottom: 2px; }
+    .tb-text span { font-size: 9px; color: var(--text2); }
+
+    /* ── CTA FINAL ── */
+    .cta-final {
+      background: linear-gradient(135deg, rgba(167,139,250,0.08), rgba(212,175,55,0.06));
+      border: 1px solid rgba(167,139,250,0.2); border-radius: 24px;
+      padding: 40px 24px; text-align: center; margin: 0 24px;
+      position: relative; overflow: hidden;
+    }
+    .cta-final::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--violet), var(--or), var(--violet)); }
+    .cta-title { font-size: clamp(20px, 5vw, 32px); font-weight: 900; margin-bottom: 10px; background: linear-gradient(90deg, #fff, var(--or)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .cta-sub { font-size: 13px; color: var(--text2); margin-bottom: 24px; line-height: 1.6; }
+
+    /* ── FOOTER ── */
+    .footer {
+      padding: 40px 24px; text-align: center;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      margin-top: 60px;
+    }
+    .footer-logo { font-family: 'Orbitron', monospace; font-size: 13px; font-weight: 900; background: linear-gradient(90deg, var(--violet), var(--or)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 16px; }
+    .footer-links { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; }
+    .footer-link { font-size: 11px; color: var(--text2); cursor: pointer; text-decoration: none; transition: color .2s; }
+    .footer-link:hover { color: var(--violet); }
+    .footer-copy { font-size: 10px; color: rgba(255,255,255,0.2); font-family: 'Orbitron', monospace; letter-spacing: 1px; }
+  </style>
+</head>
+<body>
+
+  <div class="bg-img"></div>
+  <div class="bg-overlay"></div>
+
+  <!-- HEADER -->
+  <header class="l-header">
+    <a href="/" class="l-logo">
+      <div class="l-logo-icon">⚡</div>
+      <div class="l-logo-name">MORGAN BET</div>
+    </a>
+    <a href="/login" class="btn-login">CONNEXION →</a>
+  </header>
+
+  <div class="content">
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-tag">
+        <div class="hero-dot"></div>
+        ⚡ IA · PRONOSTICS · PICKS VIP
+      </div>
+      <h1 class="hero-title">
+        <span class="grad">Gagne plus avec<br>l'IA qui analyse<br>pour toi</span>
+      </h1>
+      <p class="hero-sub">Picks quotidiens, analyse Gemini, Value Bets et combinés générés automatiquement. La data au service de tes paris.</p>
+      <div class="hero-btns">
+        <a href="/login" class="btn-cta-primary">COMMENCER GRATUITEMENT →</a>
+        <a href="/login" class="btn-cta-secondary">VOIR LES PICKS</a>
+      </div>
+    </section>
+
+    <!-- COMPTEURS -->
+    <div class="counters">
+      <div class="counter-item">
+        <div class="counter-val" id="cnt-users">1200+</div>
+        <div class="counter-lbl">UTILISATEURS ACTIFS</div>
+      </div>
+      <div class="counter-item">
+        <div class="counter-val">85%</div>
+        <div class="counter-lbl">TAUX DE RÉUSSITE</div>
+      </div>
+      <div class="counter-item">
+        <div class="counter-val">54</div>
+        <div class="counter-lbl">LIGUES ANALYSÉES</div>
+      </div>
+    </div>
+
+    <!-- FEATURES -->
+    <section class="section">
+      <div class="section-tag">POURQUOI MORGAN BET</div>
+      <h2 class="section-title">Tout ce qu'il vous faut</h2>
+      <p class="section-sub">Une plateforme complète propulsée par l'intelligence artificielle</p>
+      <div class="features-grid">
+        <div class="feat-card">
+          <div class="feat-icon">🤖</div>
+          <div class="feat-title">ANALYSE IA</div>
+          <div class="feat-sub">9 modèles statistiques + Gemini pour chaque match</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon">🎯</div>
+          <div class="feat-title">PICKS DU JOUR</div>
+          <div class="feat-sub">Pronostics quotidiens sur 8 marchés différents</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon">🎟️</div>
+          <div class="feat-title">TICKET PRO</div>
+          <div class="feat-sub">Génère tes combinés filtrés par marché et cote</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon">📊</div>
+          <div class="feat-title">VALUE BETS</div>
+          <div class="feat-sub">Détection automatique des cotes sous-évaluées</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMMENT ÇA MARCHE -->
+    <section class="section" style="padding-top:0">
+      <div class="section-tag">SIMPLE & RAPIDE</div>
+      <h2 class="section-title">Comment ça marche</h2>
+      <p class="section-sub">3 étapes pour commencer à gagner</p>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div>
+            <div class="step-title">Inscris-toi gratuitement</div>
+            <div class="step-sub">Crée ton compte en 30 secondes. Accès immédiat aux picks gratuits du jour.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div>
+            <div class="step-title">Choisis ton plan</div>
+            <div class="step-sub">Starter, Pro ou VIP selon tes besoins. Annulation à tout moment.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div>
+            <div class="step-title">Joue et suis tes résultats</div>
+            <div class="step-sub">Suis tes paris dans Mes Paris. Statistiques et bilan en temps réel.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- APERÇU PICKS -->
+    <section class="section" style="padding-top:0">
+      <div class="section-tag">APERÇU</div>
+      <h2 class="section-title">Picks du jour</h2>
+      <p class="section-sub">2 picks gratuits · Le reste débloqué avec un abonnement</p>
+      <div class="pick-prev">
+        <div class="pp-top"><span class="pp-league">Premier League</span><span class="pp-time">20:00</span></div>
+        <div class="pp-match">Arsenal vs Manchester City</div>
+        <div class="pp-bottom"><span class="pp-market">⚽ GG</span><span class="pp-pct">74%</span></div>
+      </div>
+      <div class="pick-prev">
+        <div class="pp-top"><span class="pp-league">La Liga</span><span class="pp-time">21:00</span></div>
+        <div class="pp-match">Real Madrid vs Barcelone</div>
+        <div class="pp-bottom"><span class="pp-market">🏆 V1</span><span class="pp-pct">71%</span></div>
+      </div>
+      <div class="pick-prev locked">
+        <div class="pp-top"><span class="pp-league">Bundesliga</span><span class="pp-time">18:30</span></div>
+        <div class="pp-match">Bayern München vs Dortmund</div>
+        <div class="pp-bottom"><span class="pp-market">📊 +2.5</span><span class="pp-pct">82%</span></div>
+        <div class="lock-overlay"><div class="lock-box"><span>🔒</span><span class="lock-text">ABONNEMENT REQUIS</span></div></div>
+      </div>
+    </section>
+
+    <!-- PLANS -->
+    <section class="section" style="padding-top:0">
+      <div class="section-tag">TARIFS</div>
+      <h2 class="section-title">Choisissez votre plan</h2>
+      <p class="section-sub">Sans engagement · Annulation facile</p>
+      <div class="plans">
+        <div class="plan starter">
+          <div class="plan-header">
+            <div class="plan-name">STARTER</div>
+            <div class="plan-price">9.99€<span style="font-size:11px;color:var(--text2)">/mois</span></div>
+          </div>
+          <div class="plan-feats">
+            <span class="pf">✓ 5 picks/jour</span>
+            <span class="pf">✓ Value Bets</span>
+            <span class="pf">✓ Score exact</span>
+          </div>
+          <a href="/subscribe" class="btn-plan">COMMENCER STARTER →</a>
+        </div>
+        <div class="plan featured">
+          <div class="plan-badge pb-pop" style="position:absolute;top:12px;right:12px">⭐ POPULAIRE</div>
+          <div class="plan-header" style="margin-top:8px">
+            <div class="plan-name">PRO</div>
+            <div class="plan-price">19.99€<span style="font-size:11px;color:var(--text2)">/mois</span></div>
+          </div>
+          <div class="plan-feats">
+            <span class="pf">✓ 7 picks/jour</span>
+            <span class="pf">✓ Analyse IA Pro</span>
+            <span class="pf">✓ Ticket Pro</span>
+            <span class="pf">✓ Value Bets illimités</span>
+          </div>
+          <a href="/subscribe" class="btn-plan">COMMENCER PRO →</a>
+        </div>
+        <div class="plan vip">
+          <div class="plan-badge pb-vip" style="position:absolute;top:12px;right:12px">💎 VIP</div>
+          <div class="plan-header" style="margin-top:8px">
+            <div class="plan-name">VIP</div>
+            <div class="plan-price">34.99€<span style="font-size:11px;color:var(--text2)">/mois</span></div>
+          </div>
+          <div class="plan-feats">
+            <span class="pf">✓ 9 picks/jour</span>
+            <span class="pf">✓ Picks VIP exclusifs</span>
+            <span class="pf">✓ Support prioritaire</span>
+            <span class="pf">✓ Accès nouveautés</span>
+          </div>
+          <a href="/subscribe" class="btn-plan">DEVENIR VIP →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- TÉMOIGNAGES -->
+    <section class="section" style="padding-top:0">
+      <div class="section-tag">ILS NOUS FONT CONFIANCE</div>
+      <h2 class="section-title">Témoignages</h2>
+      <div class="temos">
+        <div class="temo">
+          <div class="temo-top"><div class="temo-avatar">👨</div><div><div class="temo-name">Karim B.</div><div class="temo-plan">PLAN PRO · Paris, France</div></div></div>
+          <div class="temo-stars">⭐⭐⭐⭐⭐</div>
+          <div class="temo-text">"Depuis que j'utilise Morgan BetPro, mon taux de réussite est passé de 45% à 72%. L'analyse IA est vraiment impressionnante."</div>
+        </div>
+        <div class="temo">
+          <div class="temo-top"><div class="temo-avatar">👩</div><div><div class="temo-name">Aminata K.</div><div class="temo-plan">PLAN VIP · Dakar, Sénégal</div></div></div>
+          <div class="temo-stars">⭐⭐⭐⭐⭐</div>
+          <div class="temo-text">"Le Ticket Pro est incroyable, je génère mes combinés en 2 minutes. J'ai gagné 3 combinés cette semaine !"</div>
+        </div>
+        <div class="temo">
+          <div class="temo-top"><div class="temo-avatar">👨🏽</div><div><div class="temo-name">Marco T.</div><div class="temo-plan">PLAN STARTER · Milan, Italie</div></div></div>
+          <div class="temo-stars">⭐⭐⭐⭐⭐</div>
+          <div class="temo-text">"Très bon rapport qualité/prix pour le plan Starter. Les picks sont précis et bien expliqués."</div>
+        </div>
+        <div class="temo">
+          <div class="temo-top"><div class="temo-avatar">👨🏿</div><div><div class="temo-name">Oumar D.</div><div class="temo-plan">PLAN VIP · Abidjan, Côte d'Ivoire</div></div></div>
+          <div class="temo-stars">⭐⭐⭐⭐⭐</div>
+          <div class="temo-text">"J'ai multiplié ma bankroll par 3 en un mois grâce aux picks VIP. Le meilleur investissement !"</div>
+        </div>
+        <div class="temo">
+          <div class="temo-top"><div class="temo-avatar">👩🏽</div><div><div class="temo-name">Sofia R.</div><div class="temo-plan">PLAN PRO · Casablanca, Maroc</div></div></div>
+          <div class="temo-stars">⭐⭐⭐⭐⭐</div>
+          <div class="temo-text">"L'application est très intuitive et les analyses sont claires. Je recommande à tous les parieurs sérieux."</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRUST -->
+    <section class="section" style="padding-top:0">
+      <div class="trust-grid">
+        <div class="trust-badge"><div class="tb-icon">🔒</div><div class="tb-text"><strong>Paiement sécurisé</strong><span>Stripe SSL certifié</span></div></div>
+        <div class="trust-badge"><div class="tb-icon">🔄</div><div class="tb-text"><strong>Sans engagement</strong><span>Annulez quand vous voulez</span></div></div>
+        <div class="trust-badge"><div class="tb-icon">⚡</div><div class="tb-text"><strong>Activation immédiate</strong><span>Accès instantané</span></div></div>
+        <div class="trust-badge"><div class="tb-icon">🤖</div><div class="tb-text"><strong>IA Morgan</strong><span>9 modèles + Gemini</span></div></div>
+      </div>
+    </section>
+
+    <!-- CTA FINAL -->
+    <div class="cta-final">
+      <div class="cta-title">Prêt à gagner avec l'IA ?</div>
+      <div class="cta-sub">Rejoins 1200+ parieurs qui font confiance à Morgan BetPro chaque jour.</div>
+      <a href="/login" class="btn-cta-primary">COMMENCER GRATUITEMENT →</a>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="footer-logo">MORGAN BET</div>
+      <div class="footer-links">
+        <a href="/mentions-legales" class="footer-link">Mentions légales</a>
+        <a href="/confidentialite" class="footer-link">Confidentialité</a>
+        <a href="mailto:contact@morganbetpro.com" class="footer-link">Contact</a>
+        <a href="https://t.me/+gb0PJPqLonBiNjc0" target="_blank" class="footer-link">✈️ Telegram</a>
+        <a href="#" class="footer-link">💬 WhatsApp</a>
+        <a href="#" class="footer-link">📸 Instagram</a>
+      </div>
+      <div class="footer-copy">© 2026 MORGAN BET PRO · TOUS DROITS RÉSERVÉS</div>
+    </footer>
+
+  </div>
+
+  <script>
+    // Charger le vrai nombre d'utilisateurs
+    fetch('/api/admin/stats')
+      .then(r => r.json())
+      .then(d => {
+        if (d.total_users) {
+          const cnt = document.getElementById('cnt-users');
+          if (cnt) cnt.textContent = d.total_users >= 1000 ? (d.total_users/1000).toFixed(1)+'k+' : d.total_users+'+';
+        }
+      }).catch(() => {});
+
+    // Rediriger si déjà connecté
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(r => r.json())
+      .then(d => { if (d.logged_in) window.location.href = '/app'; })
+      .catch(() => {});
+  </script>
+</body>
+</html>

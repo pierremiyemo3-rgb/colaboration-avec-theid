@@ -1,0 +1,347 @@
+{% extends "base.html" %}
+{% set active_page = 'lab' %}
+{% block title %}Morgan BetPro — Matchs du Jour{% endblock %}
+
+{% block extra_css %}
+/* ── SEARCH ── */
+.search-bar {
+  display:flex; align-items:center; gap:8px;
+  background:rgba(255,255,255,0.04); border:1px solid var(--bv);
+  border-radius:12px; padding:0 12px; margin-bottom:10px;
+}
+.search-icon { font-size:16px; color:var(--text2); flex-shrink:0; }
+.search-input { flex:1; background:transparent; border:none; outline:none; color:var(--text); font-size:14px; padding:12px 0; }
+.search-input::placeholder { color:var(--text2); }
+
+/* ── FILTRES TEMPS ── */
+.time-filter { display:flex; gap:6px; margin-bottom:10px; }
+.time-btn {
+  flex:1; padding:8px 4px; border-radius:10px; text-align:center;
+  font-family:'Orbitron',monospace; font-size:8px; font-weight:700;
+  cursor:pointer; border:1px solid var(--border);
+  background:transparent; color:var(--text2); transition:all .2s;
+}
+.time-btn.active { background:var(--vdim); border-color:var(--bv); color:var(--violet); }
+
+/* ── FILTRES LIGUES ── */
+.filters-row {
+  display:flex; gap:6px; overflow-x:auto;
+  scrollbar-width:none; margin-bottom:14px;
+  padding-bottom:2px;
+}
+.filters-row::-webkit-scrollbar { display:none; }
+.filter-chip {
+  padding:5px 12px; border-radius:20px; flex-shrink:0;
+  font-size:10px; font-weight:600; cursor:pointer;
+  border:1px solid var(--border); background:transparent;
+  color:var(--text2); white-space:nowrap; transition:all .2s;
+}
+.filter-chip.active { background:var(--vdim); border-color:var(--bv); color:var(--violet); }
+
+/* ── LEAGUE GROUP ── */
+.league-group { margin-bottom:16px; }
+.league-header {
+  display:flex; align-items:center; gap:8px;
+  padding:8px 0; margin-bottom:8px;
+  border-bottom:1px solid rgba(255,255,255,0.05);
+}
+.league-flag { font-size:16px; flex-shrink:0; }
+.league-logo { width:20px; height:20px; object-fit:contain; border-radius:50%; flex-shrink:0; }
+.league-name { font-family:'Orbitron',monospace; font-size:9px; font-weight:700; color:var(--violet); letter-spacing:1px; flex:1; }
+.league-count { font-size:9px; color:var(--text2); flex-shrink:0; }
+
+/* ── MATCH CARD ── */
+.match-card {
+  background:var(--surface); border:1px solid var(--bv);
+  border-radius:14px; padding:12px 14px; margin-bottom:8px;
+  cursor:pointer; transition:all .2s; position:relative; overflow:hidden;
+}
+.match-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--violet),transparent); opacity:0; transition:opacity .2s; }
+.match-card:hover { border-color:rgba(167,139,250,0.3); transform:translateY(-1px); }
+.match-card:hover::before { opacity:1; }
+.match-card.live { border-color:rgba(74,222,128,0.2); }
+.match-card.live::before { background:linear-gradient(90deg,var(--green),transparent); opacity:1; }
+
+.mc-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.mc-time { font-family:'Orbitron',monospace; font-size:10px; color:var(--text2); }
+.mc-status { font-size:9px; font-weight:700; padding:3px 8px; border-radius:6px; font-family:'Orbitron',monospace; }
+.ms-coming { background:rgba(255,255,255,0.05); color:var(--text2); }
+.ms-live   { background:rgba(74,222,128,0.1); color:var(--green); border:1px solid rgba(74,222,128,0.2); animation:pulse-g 2s infinite; }
+.ms-ft     { background:rgba(255,255,255,0.05); color:var(--text2); }
+@keyframes pulse-g { 0%,100%{opacity:1} 50%{opacity:.6} }
+
+.mc-teams { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.mc-team { display:flex; align-items:center; gap:8px; flex:1; min-width:0; }
+.mc-team.right { flex-direction:row-reverse; }
+.mc-logo {
+  width:28px; height:28px; border-radius:50%;
+  background:rgba(255,255,255,0.06); border:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-size:13px; flex-shrink:0; overflow:hidden;
+}
+.mc-logo img { width:100%; height:100%; object-fit:contain; }
+.mc-team-name { font-size:13px; font-weight:800; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mc-score {
+  font-family:'Orbitron',monospace; font-size:17px; font-weight:900;
+  color:var(--or); min-width:50px; text-align:center; flex-shrink:0;
+}
+.mc-score.time { font-size:12px; color:var(--text2); }
+
+/* Stats sous le match */
+.mc-stats { display:flex; align-items:center; justify-content:space-between; }
+.mc-stat {
+  display:flex; align-items:center; gap:4px;
+  font-size:10px; color:var(--text2); font-weight:600;
+  background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06);
+  padding:4px 8px; border-radius:8px;
+}
+.ms-pct { font-family:'Orbitron',monospace; font-size:9px; font-weight:700; }
+.ms-bts .ms-pct  { color:var(--green); }
+.ms-over .ms-pct { color:var(--or); }
+.ms-v1 .ms-pct   { color:var(--violet); }
+.btn-ia {
+  display:flex; align-items:center; gap:4px;
+  padding:5px 10px; border-radius:8px;
+  background:rgba(212,175,55,0.1); border:1px solid rgba(212,175,55,0.25);
+  color:var(--or); font-family:'Orbitron',monospace;
+  font-size:8px; font-weight:700; cursor:pointer; flex-shrink:0;
+}
+{% endblock %}
+
+{% block content %}
+
+<!-- RECHERCHE -->
+<div class="search-bar">
+  <span class="search-icon">🔍</span>
+  <input class="search-input" id="search-input" placeholder="Rechercher un match, équipe..." oninput="applyFilters()">
+</div>
+
+<!-- FILTRE TEMPS -->
+<div class="time-filter">
+  <button class="time-btn active" data-time="all" onclick="setTimeFilter('all',this)">TOUS</button>
+  <button class="time-btn" data-time="live" onclick="setTimeFilter('live',this)">🔴 LIVE</button>
+  <button class="time-btn" data-time="upcoming" onclick="setTimeFilter('upcoming',this)">À VENIR</button>
+  <button class="time-btn" data-time="finished" onclick="setTimeFilter('finished',this)">TERMINÉS</button>
+</div>
+
+<!-- FILTRES LIGUES -->
+<div class="filters-row" id="filters-row">
+  <div class="filter-chip active" onclick="filterLeague('',this)">🌍 Toutes</div>
+</div>
+
+<!-- COUNT -->
+<div style="font-family:'Orbitron',monospace;font-size:8px;color:var(--text2);letter-spacing:2px;text-align:right;margin-bottom:10px" id="match-count"></div>
+
+<!-- LOADER -->
+<div class="loader" id="matchs-loader"><div class="loader-ring"></div><div class="loader-text">CHARGEMENT DES MATCHS...</div></div>
+
+<!-- CONTAINER -->
+<div id="matchs-container" style="display:none"></div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let allMatches   = [];
+let pronoData    = {}; // picks depuis /api/pronostic-du-jour indexés par fixture_id
+let timeFilter   = 'all';
+let leagueFilter = '';
+
+const LIVE_STATUS     = ['1H','2H','HT','ET','P','BT'];
+const FT_STATUS       = ['FT','AET','PEN'];
+const LEAGUE_FLAGS    = {
+  'Premier League':'🏴󠁧󠁢󠁥󠁮󠁧󠁿','La Liga':'🇪🇸','Bundesliga':'🇩🇪','Ligue 1':'🇫🇷',
+  'Serie A':'🇮🇹','Eredivisie':'🇳🇱','Primeira Liga':'🇵🇹','MLS':'🇺🇸',
+  'Champions League':'🏆','Europa League':'🏆','CONMEBOL Libertadores':'🏆',
+  'CONMEBOL Sudamericana':'🏆','Super League':'🇨🇭',
+};
+
+function getFlag(league) {
+  for (const [k,v] of Object.entries(LEAGUE_FLAGS)) {
+    if (league?.toLowerCase().includes(k.toLowerCase())) return v;
+  }
+  return '⚽';
+}
+
+async function loadAll() {
+  try {
+    // Charger matchs + picks en parallèle
+    const [r1, r2] = await Promise.all([
+      fetch('/api/today', {credentials:'include'}),
+      fetch('/api/pronostic-du-jour', {credentials:'include'})
+    ]);
+    const d1 = await r1.json();
+    const d2 = await r2.json();
+
+    allMatches = d1.matches || [];
+
+    // Indexer les picks par fixture_id ou par nom
+    const pronostics = d2.pronostics || [];
+    pronostics.forEach(p => {
+      const key = p.fixture_id || `${p.home}_${p.away}`;
+      pronoData[key] = p;
+    });
+
+    // Construire filtres ligues
+    buildLeagueFilters();
+
+    document.getElementById('matchs-loader').style.display = 'none';
+    document.getElementById('matchs-container').style.display = 'block';
+    applyFilters();
+
+  } catch(e) {
+    document.getElementById('matchs-loader').innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Erreur de chargement</div></div>`;
+  }
+}
+
+function buildLeagueFilters() {
+  const leagues = {};
+  allMatches.forEach(m => {
+    if (m.league) {
+      if (!leagues[m.league]) leagues[m.league] = 0;
+      leagues[m.league]++;
+    }
+  });
+  const sorted = Object.entries(leagues).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const row = document.getElementById('filters-row');
+  sorted.forEach(([name, count]) => {
+    const chip = document.createElement('div');
+    chip.className = 'filter-chip';
+    chip.textContent = `${getFlag(name)} ${name.slice(0,12)} ${count}`;
+    chip.onclick = () => filterLeague(name, chip);
+    row.appendChild(chip);
+  });
+}
+
+function setTimeFilter(val, btn) {
+  timeFilter = val;
+  document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function filterLeague(league, el) {
+  leagueFilter = leagueFilter === league ? '' : league;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.toggle('active', c === el && leagueFilter !== ''));
+  if (!leagueFilter) document.querySelector('.filter-chip').classList.add('active');
+  applyFilters();
+}
+
+function applyFilters() {
+  const q = document.getElementById('search-input').value.toLowerCase().trim();
+  let filtered = allMatches.filter(m => {
+    if (q && !m.home?.toLowerCase().includes(q) && !m.away?.toLowerCase().includes(q) && !m.league?.toLowerCase().includes(q)) return false;
+    if (leagueFilter && m.league !== leagueFilter) return false;
+    const isLive = LIVE_STATUS.includes(m.status);
+    const isFT   = FT_STATUS.includes(m.status);
+    if (timeFilter === 'live'     && !isLive) return false;
+    if (timeFilter === 'upcoming' && (isLive || isFT)) return false;
+    if (timeFilter === 'finished' && !isFT) return false;
+    return true;
+  });
+
+  // Trier: live en premier, puis par heure
+  filtered.sort((a,b) => {
+    const al = LIVE_STATUS.includes(a.status);
+    const bl = LIVE_STATUS.includes(b.status);
+    if (al && !bl) return -1;
+    if (!al && bl) return 1;
+    return (a.time||'').localeCompare(b.time||'');
+  });
+
+  document.getElementById('match-count').textContent = `${filtered.length} MATCH${filtered.length>1?'S':''}`;
+  renderMatchs(filtered);
+}
+
+function renderMatchs(matches) {
+  const container = document.getElementById('matchs-container');
+  if (!matches.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Aucun match</div><div class="empty-sub">Modifie tes filtres.</div></div>`;
+    return;
+  }
+
+  // Grouper par ligue
+  const byLeague = {};
+  matches.forEach(m => {
+    const l = m.league || 'Autre';
+    if (!byLeague[l]) byLeague[l] = { logo: m.league_logo, matches: [] };
+    byLeague[l].matches.push(m);
+  });
+
+  container.innerHTML = Object.entries(byLeague).map(([league, {logo, matches: lMatches}]) => `
+    <div class="league-group">
+      <div class="league-header">
+        ${logo ? `<img src="${logo}" class="league-logo" onerror="this.outerHTML='<span>${getFlag(league)}</span>'">` : `<span class="league-flag">${getFlag(league)}</span>`}
+        <div class="league-name">${league.toUpperCase()}</div>
+        <div class="league-count">${lMatches.length} match${lMatches.length>1?'s':''}</div>
+      </div>
+      ${lMatches.map(m => buildMatchCard(m)).join('')}
+    </div>
+  `).join('');
+}
+
+function buildMatchCard(m) {
+  const isLive = LIVE_STATUS.includes(m.status);
+  const isFT   = FT_STATUS.includes(m.status);
+
+  const statusHtml = isLive
+    ? `<span class="mc-status ms-live">🔴 ${m.elapsed ? m.elapsed+"'" : m.status}</span>`
+    : isFT
+    ? `<span class="mc-status ms-ft">FT</span>`
+    : `<span class="mc-status ms-coming">${m.time||'--:--'}</span>`;
+
+  const scoreHtml = (isLive || isFT)
+    ? `<div class="mc-score">${m.home_score??'?'}-${m.away_score??'?'}</div>`
+    : `<div class="mc-score time">${m.time||'--:--'}</div>`;
+
+  const hLogo = m.home_logo ? `<img src="${m.home_logo}" onerror="this.parentElement.innerHTML='⚽'">` : '⚽';
+  const aLogo = m.away_logo ? `<img src="${m.away_logo}" onerror="this.parentElement.innerHTML='⚽'">` : '⚽';
+
+  // Chercher les stats du pick correspondant
+  const prono = pronoData[m.id] || pronoData[`${m.home}_${m.away}`] || null;
+  const gg  = prono?.bts;
+  const o25 = prono?.over25 || prono?.bts_o25;
+  const v1  = prono?.top_pct || prono?.probs?.home;
+
+  const statsHtml = (gg||o25||v1) ? `
+    <div class="mc-stats">
+      <div style="display:flex;gap:5px">
+        ${gg  ? `<div class="mc-stat ms-bts">GG <span class="ms-pct">${parseFloat(gg).toFixed(0)}%</span></div>` : ''}
+        ${o25 ? `<div class="mc-stat ms-over">+2.5 <span class="ms-pct">${parseFloat(o25).toFixed(0)}%</span></div>` : ''}
+        ${v1  ? `<div class="mc-stat ms-v1">V1 <span class="ms-pct">${parseFloat(v1).toFixed(0)}%</span></div>` : ''}
+      </div>
+      <button class="btn-ia" onclick="event.stopPropagation();goToIA('${encodeURIComponent(m.home||'')}','${encodeURIComponent(m.away||'')}')">✨ IA</button>
+    </div>` : `
+    <div class="mc-stats">
+      <div style="font-size:10px;color:var(--text2)">Lance l'analyse IA</div>
+      <button class="btn-ia" onclick="event.stopPropagation();goToIA('${encodeURIComponent(m.home||'')}','${encodeURIComponent(m.away||'')}')">✨ IA</button>
+    </div>`;
+
+  return `
+    <div class="match-card ${isLive?'live':''}" onclick="goToStats(${m.id||0},'${encodeURIComponent(m.home||'')}','${encodeURIComponent(m.away||'')}')">
+      <div class="mc-top">
+        <span class="mc-time">${m.time||'--:--'}</span>
+        ${statusHtml}
+      </div>
+      <div class="mc-teams">
+        <div class="mc-team"><div class="mc-logo">${hLogo}</div><div class="mc-team-name">${m.home||'?'}</div></div>
+        ${scoreHtml}
+        <div class="mc-team right"><div class="mc-team-name">${m.away||'?'}</div><div class="mc-logo">${aLogo}</div></div>
+      </div>
+      ${statsHtml}
+    </div>`;
+}
+
+function goToStats(id, home, away) {
+  window.location.href = `/lab/stats?id=${id}&home=${home}&away=${away}`;
+}
+
+function goToIA(home, away) {
+  window.location.href = `/lab/analyse?home=${home}&away=${away}`;
+}
+
+// Refresh auto toutes les 60s
+loadAll();
+setInterval(loadAll, 60000);
+</script>
+{% endblock %}

@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+{% set active_page = 'menu' %}
+{% block title %}Morgan BetPro — Menu{% endblock %}
+
+{% block extra_css %}
+.menu-header {
+  padding: 20px 0 16px;
+  font-family: 'Orbitron', monospace;
+  font-size: 18px; font-weight: 900; letter-spacing: 2px;
+  background: linear-gradient(90deg, var(--violet), var(--or));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+.menu-section { margin-bottom: 20px; }
+.menu-section-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px; font-weight: 900;
+  letter-spacing: 2px;
+  color: var(--violet);
+  margin-bottom: 8px;
+}
+
+.menu-item {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--surface); border: 1px solid var(--bv);
+  border-radius: 14px; padding: 14px 16px;
+  margin-bottom: 8px; cursor: pointer;
+  text-decoration: none; transition: all .2s;
+  position: relative; overflow: hidden;
+}
+.menu-item::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--violet), transparent);
+  opacity: 0; transition: opacity .2s;
+}
+.menu-item:hover { border-color: rgba(167,139,250,0.3); transform: translateX(4px); }
+.menu-item:hover::before { opacity: 1; }
+
+.mi-icon {
+  width: 40px; height: 40px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+}
+.mi-icon.violet { background: var(--vdim); border: 1px solid var(--bv); }
+.mi-icon.or     { background: var(--odim); border: 1px solid var(--bo); }
+.mi-icon.green  { background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.2); }
+.mi-icon.blue   { background: rgba(96,165,250,0.08); border: 1px solid rgba(96,165,250,0.2); }
+.mi-icon.tg     { background: rgba(0,136,204,0.1); border: 1px solid rgba(0,136,204,0.2); }
+.mi-icon.wa     { background: rgba(37,211,102,0.08); border: 1px solid rgba(37,211,102,0.2); }
+.mi-icon.red    { background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.2); }
+.mi-icon.pink   { background: rgba(251,113,133,0.08); border: 1px solid rgba(251,113,133,0.2); }
+
+.mi-info { flex: 1; }
+.mi-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.mi-sub   { font-size: 10px; color: var(--text2); }
+.mi-arrow { font-size: 16px; color: var(--text2); flex-shrink: 0; }
+
+/* Plan badge dans menu */
+.menu-profile {
+  display: flex; align-items: center; gap: 14px;
+  background: linear-gradient(135deg, rgba(167,139,250,0.08), rgba(212,175,55,0.05));
+  border: 1px solid var(--bv); border-radius: 16px;
+  padding: 16px; margin-bottom: 20px;
+  position: relative; overflow: hidden;
+  text-decoration: none; cursor: pointer;
+}
+.menu-profile::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--violet), var(--or));
+}
+.mp-avatar {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--violet), var(--or));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; flex-shrink: 0; border: 2px solid rgba(167,139,250,0.3);
+}
+.mp-name { font-size: 16px; font-weight: 900; color: var(--text); margin-bottom: 4px; }
+.mp-email { font-size: 10px; color: var(--text2); margin-bottom: 6px; }
+{% endblock %}
+
+{% block content %}
+
+<div class="menu-header">☰ MENU</div>
+
+<!-- PROFIL -->
+<a href="/profil" class="menu-profile">
+  <div class="mp-avatar">
+    {% if session.get('avatar') %}{{ session.get('avatar') }}{% else %}👤{% endif %}
+  </div>
+  <div style="flex:1">
+    <div class="mp-name">{{ session.get('username', 'Utilisateur') }}</div>
+    <div class="mp-email">{{ session.get('email', '') }}</div>
+    {% set plan = session.get('subscription', 'free') %}
+    <span class="h-plan {{ plan }}">
+      {% if plan == 'owner' %}👑 OWNER{% elif plan == 'vip' %}💎 VIP{% elif plan == 'pro' %}🔵 PRO{% elif plan == 'starter' %}🟢 STARTER{% else %}FREE{% endif %}
+    </span>
+  </div>
+  <div class="mi-arrow">→</div>
+</a>
+
+<!-- PAGES PRINCIPALES -->
+<div class="menu-section">
+  <div class="menu-section-title">📱 PAGES</div>
+
+  <a href="/vip" class="menu-item">
+    <div class="mi-icon or">💎</div>
+    <div class="mi-info">
+      <div class="mi-title">VIP</div>
+      <div class="mi-sub">Picks exclusifs haute confiance</div>
+    </div>
+    <div class="mi-arrow">→</div>
+  </a>
+
+  <a href="/bankroll" class="menu-item">
+    <div class="mi-icon green">💰</div>
+    <div class="mi-info">
+      <div class="mi-title">Bankroll</div>
+      <div class="mi-sub">Gestion de ton capital</div>
+    </div>
+    <div class="mi-arrow">→</div>
+  </a>
+
+  <a href="/bilan" class="menu-item">
+    <div class="mi-icon violet">📊</div>
+    <div class="mi-info">
+      <div class="mi-title">Bilan</div>
+      <div class="mi-sub">Stats et performances</div>
+    </div>
+    <div class="mi-arrow">→</div>
+  </a>
+
+  <a href="/subscribe" class="menu-item">
+    <div class="mi-icon or">🎟️</div>
+    <div class="mi-info">
+      <div class="mi-title">Abonnements</div>
+      <div class="mi-sub">Gérer ton plan</div>
+    </div>
+    <div class="mi-arrow">→</div>
+  </a>
+</div>
+
+<!-- PARAMÈTRES -->
+<div class="menu-section">
+  <div class="menu-section-title">⚙️ COMPTE</div>
+
+  <a href="/profil" class="menu-item">
+    <div class="mi-icon violet">👤</div>
+    <div class="mi-info">
+      <div class="mi-title">Mon Profil</div>
+      <div class="mi-sub">Avatar, nom, mot de passe</div>
+    </div>
+    <div class="mi-arrow">→</div>
+  </a>
+
+  <a href="/parametres" class="menu-item">
+    <div class="mi-icon blue">⚙️</div>
+    <div class="mi-info">
+      <div class="mi-title">Paramètres</div>
+      <div class="mi-sub">Mode, langue, devise, notifications</div>
+    </div>
+    <div class="mi-arrow">→</div>
+  </a>
+
+  {% if session.get('subscription') == 'owner' %}
+  <a href="/admin" class="menu-item" style="border-color:rgba(251,113,133,0.25);background:rgba(251,113,133,0.04)">
+    <div class="mi-icon pink">👑</div>
+    <div class="mi-info">
+      <div class="mi-title" style="color:#fb7185">Panel Admin</div>
+      <div class="mi-sub">Gérer utilisateurs, picks et revenus</div>
+    </div>
+    <div class="mi-arrow" style="color:#fb7185">→</div>
+  </a>
+  {% endif %}
+</div>
+
+<!-- COMMUNAUTÉ -->
+<div class="menu-section">
+  <div class="menu-section-title">💬 COMMUNAUTÉ</div>
+
+  <a href="https://t.me/+gb0PJPqLonBiNjc0" target="_blank" class="menu-item">
+    <div class="mi-icon tg">✈️</div>
+    <div class="mi-info">
+      <div class="mi-title">Telegram</div>
+      <div class="mi-sub">Picks et alertes en direct</div>
+    </div>
+    <div class="mi-arrow">→</div>
+  </a>
+
+  <a href="#" class="menu-item">
+    <div class="mi-icon wa">💬</div>
+    <div class="mi-info">
+      <div class="mi-title">WhatsApp</div>
+      <div class="mi-sub">Groupe de discussion</div>
+    </div>
+    <div class="mi-arrow">→</div>
+  </a>
+</div>
+
+<!-- DÉCONNEXION -->
+<div class="menu-section">
+  <div class="menu-item" onclick="doLogout()" style="border-color:rgba(248,113,113,0.2);background:rgba(248,113,113,0.04)">
+    <div class="mi-icon red">🚪</div>
+    <div class="mi-info">
+      <div class="mi-title" style="color:var(--red)">Se déconnecter</div>
+      <div class="mi-sub">Fermer la session</div>
+    </div>
+  </div>
+</div>
+
+<!-- VERSION -->
+<div style="text-align:center;padding:10px 0 20px;font-family:'Orbitron',monospace;font-size:8px;color:rgba(255,255,255,0.15);letter-spacing:2px">
+  MORGAN BET PRO · v2.0 · 2026
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function doLogout() {
+  try { await fetch('/api/auth/logout', {method:'POST', credentials:'include'}); } catch(e){}
+  window.location.href = '/';
+}
+</script>
+{% endblock %}

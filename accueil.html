@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+{% set active_page = 'accueil' %}
+{% block title %}Morgan BetPro — Accueil{% endblock %}
+
+{% block extra_css %}
+<style>
+.home-hero{padding:16px 0 20px}
+.hero-tag{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:3px;color:var(--or);opacity:.7;margin-bottom:6px}
+.hero-title{font-size:22px;font-weight:900;line-height:1.2;margin-bottom:6px}
+.hero-title .grad{background:linear-gradient(90deg,#fff 0%,var(--violet) 50%,var(--or) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:11px;color:var(--text2);margin-bottom:20px}
+.sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.sec-title{font-size:13px;font-weight:800;color:var(--text)}
+.sec-link{font-size:11px;color:var(--violet);font-weight:600;text-decoration:none}
+.home-pick{background:var(--surface);border:1px solid var(--bv);border-radius:16px;padding:14px;margin-bottom:10px;position:relative;overflow:hidden;cursor:pointer;transition:all .2s}
+.home-pick::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--violet),transparent)}
+.home-pick:hover{border-color:rgba(167,139,250,0.3);transform:translateY(-1px)}
+.hp-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.hp-league{font-size:9px;font-weight:700;color:var(--violet);background:var(--vdim);border:1px solid var(--bv);padding:2px 8px;border-radius:6px}
+.hp-time{font-size:10px;color:var(--text2)}
+.hp-market-center{text-align:center;font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--or);margin-bottom:8px;letter-spacing:.5px}
+.hp-match-row{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:6px}
+.hp-team{display:flex;align-items:center;gap:5px;flex:1;min-width:0}
+.hp-team.right{flex-direction:row-reverse}
+.hp-logo{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;overflow:hidden}
+.hp-logo img{width:100%;height:100%;object-fit:contain}
+.hp-name{font-size:12px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hp-score{font-family:'Orbitron',monospace;font-size:16px;font-weight:900;color:var(--or);min-width:48px;text-align:center;flex-shrink:0}
+.hp-score.time{font-size:12px;color:var(--text2)}
+.hp-pct{font-family:'Orbitron',monospace;font-size:14px;font-weight:900;background:linear-gradient(90deg,var(--violet),var(--or));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hp-cote{display:inline-block;font-family:'Orbitron',monospace;font-size:12px;font-weight:700;color:var(--or);background:var(--odim);border:1px solid var(--bo);padding:3px 10px;border-radius:8px}
+.btn-joue{padding:4px 12px;border-radius:20px;border:1px solid rgba(167,139,250,0.4);background:rgba(167,139,250,0.15);color:#a78bfa;font-family:'Orbitron',monospace;font-size:8px;font-weight:700;cursor:pointer}
+.btn-joue-live{border-color:rgba(248,113,113,0.4);background:rgba(248,113,113,0.15);color:#f87171}
+.badge-live{background:rgba(139,92,246,0.12);color:var(--violet);border:1px solid var(--bv);animation:pulse-badge 2s infinite}
+.badge-won{background:rgba(74,222,128,0.08);color:var(--green);border:1px solid rgba(74,222,128,0.2)}
+.badge-lost{background:rgba(248,113,113,0.08);color:var(--red);border:1px solid rgba(248,113,113,0.2)}
+.badge-coming{background:rgba(212,175,55,0.08);color:var(--or);border:1px solid var(--bo)}
+@keyframes pulse-badge{0%,100%{opacity:1}50%{opacity:.6}}
+.vip-teaser{background:linear-gradient(135deg,rgba(212,175,55,0.08),rgba(167,139,250,0.05));border:1px solid rgba(212,175,55,0.25);border-radius:16px;padding:16px;position:relative;overflow:hidden;margin-top:4px}
+.vip-teaser::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--violet),var(--or),var(--violet))}
+.vip-lbl{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;color:var(--or);margin-bottom:6px}
+.vip-t{font-size:14px;font-weight:900;color:var(--text);margin-bottom:4px}
+.vip-s{font-size:11px;color:var(--text2);margin-bottom:14px}
+.vip-picks-row{display:flex;gap:8px;margin-bottom:14px}
+.vip-pick-blur{background:rgba(255,255,255,0.03);border:1px solid rgba(212,175,55,0.15);border-radius:10px;padding:10px;flex:1;position:relative}
+.vp-conf{font-family:'Orbitron',monospace;font-size:16px;font-weight:900;color:var(--or);margin-bottom:4px}
+.vp-m{font-size:11px;font-weight:700;color:var(--text);filter:blur(4px);user-select:none}
+.vp-mk{font-size:9px;color:var(--text2);filter:blur(3px)}
+.vp-lock{position:absolute;top:6px;right:6px;font-size:10px;opacity:.5}
+.btn-vip{width:100%;padding:12px;background:linear-gradient(135deg,var(--violet),var(--or));border:none;border-radius:10px;color:#fff;font-family:'Orbitron',monospace;font-size:10px;font-weight:900;letter-spacing:2px;cursor:pointer;text-decoration:none;display:block;text-align:center}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- POPUP MISE -->
+<div id="mise-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#0f0020;border:1px solid rgba(167,139,250,0.3);border-radius:20px;padding:24px;width:100%;max-width:340px;position:relative">
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#a78bfa,#d4af37);border-radius:20px 20px 0 0"></div>
+    <div style="font-family:'Orbitron',monospace;font-size:9px;color:#d4af37;letter-spacing:2px;margin-bottom:8px">🎯 JE JOUE</div>
+    <div id="popup-match" style="font-size:14px;font-weight:800;color:#f3f4f6;margin-bottom:4px"></div>
+    <div id="popup-market" style="font-size:11px;color:#6b7280;margin-bottom:20px"></div>
+    <div style="font-size:12px;color:#9ca3af;margin-bottom:8px">Votre mise :</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <button onclick="changeMise(-5)" style="width:36px;height:36px;border-radius:50%;border:1px solid rgba(167,139,250,0.3);background:rgba(167,139,250,0.1);color:#a78bfa;font-size:18px;cursor:pointer;font-weight:700">-</button>
+      <input id="popup-mise" type="number" value="10" min="1" oninput="updateGain()" style="flex:1;text-align:center;background:rgba(255,255,255,0.06);border:1px solid rgba(167,139,250,0.3);border-radius:10px;padding:10px;color:#fff;font-family:'Orbitron',monospace;font-size:18px;font-weight:900;outline:none">
+      <button onclick="changeMise(5)" style="width:36px;height:36px;border-radius:50%;border:1px solid rgba(167,139,250,0.3);background:rgba(167,139,250,0.1);color:#a78bfa;font-size:18px;cursor:pointer;font-weight:700">+</button>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.15);border-radius:10px;padding:10px 14px;margin-bottom:20px">
+      <div style="font-size:12px;color:#9ca3af">Gain potentiel</div>
+      <div id="popup-gain" style="font-family:'Orbitron',monospace;font-size:18px;font-weight:900;color:#4ade80"></div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button onclick="fermerPopup()" style="flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#6b7280;font-family:'Orbitron',monospace;font-size:9px;font-weight:700;cursor:pointer">ANNULER</button>
+      <button id="popup-confirm" onclick="confirmerPari()" style="flex:2;padding:12px;border-radius:10px;border:none;background:linear-gradient(90deg,#a78bfa,#d4af37);color:#0a0015;font-family:'Orbitron',monospace;font-size:9px;font-weight:900;cursor:pointer;letter-spacing:1px">CONFIRMER →</button>
+    </div>
+  </div>
+</div>
+
+<div class="home-hero">
+  <div class="hero-tag">TABLEAU DE BORD · ANALYSE IA</div>
+  <div class="hero-title">
+    <span class="grad">Bonne journée,<br>{{ session.get('username', 'Champion') }} <span id="hero-emoji">🔥</span></span>
+  </div>
+  <div class="hero-sub">Les meilleurs picks du jour sélectionnés par marché.</div>
+</div>
+
+<div class="sec-header">
+  <div class="sec-title">🏆 Meilleur Pick par Marché</div>
+  <a href="/pronostic" class="sec-link">Voir tous →</a>
+</div>
+
+<div class="loader" id="picks-loader">
+  <div class="loader-ring"></div>
+  <div class="loader-text">CHARGEMENT DES PICKS...</div>
+</div>
+
+<div id="picks-container" style="display:none"></div>
+
+{% if session.get('subscription') not in ['vip', 'owner'] %}
+<div class="vip-teaser">
+  <div class="vip-lbl">💎 PICKS VIP EXCLUSIFS</div>
+  <div class="vip-t">Picks réservés aux membres VIP</div>
+  <div class="vip-s">Analyses avancées sélectionnées par l'IA.</div>
+  <div class="vip-picks-row">
+    <div class="vip-pick-blur">
+      <div class="vp-lock">🔒</div>
+      <div class="vp-conf">83%</div>
+      <div class="vp-m">Équipe A vs B</div>
+      <div class="vp-mk">Score exact</div>
+    </div>
+    <div class="vip-pick-blur">
+      <div class="vp-lock">🔒</div>
+      <div class="vp-conf">79%</div>
+      <div class="vp-m">Équipe C vs D</div>
+      <div class="vp-mk">Victoire + Over</div>
+    </div>
+  </div>
+  <a href="/subscribe" class="btn-vip">💎 VOIR LES PICKS VIP →</a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const emojis = ['🔥','⚡','💥','🎯','🏆','⚽','🎲','💫','🚀','🦁','👑','💎'];
+document.getElementById('hero-emoji').textContent = emojis[Math.floor(Math.random() * emojis.length)];
+
+const USER_PLAN = '{{ session.get("subscription", "free") }}';
+const PLAN_LIMITS = { free: 3, starter: 5, pro: 7, vip: 9, owner: 99 };
+const userLimit = PLAN_LIMITS[USER_PLAN] || 3;
+
+function getMarketLabel(pick) {
+  if (pick.top_outcome) return pick.top_outcome.slice(0, 16);
+  const mkts = pick.markets || [];
+  if (mkts.length) {
+    const best = mkts.sort((a,b) => (b.pct||0)-(a.pct||0))[0];
+    return best.label || best.type || 'PICK';
+  }
+  return 'PICK';
+}
+
+function getConf(pick) {
+  return pick.top_pct || pick.confidence || 0;
+}
+
+function getCote(pick) {
+  if (pick.main_cote) return parseFloat(pick.main_cote).toFixed(2);
+  const mkts = pick.markets || [];
+  if (mkts.length) return parseFloat(mkts[0].cote||1.5).toFixed(2);
+  return '';
+}
+
+function getStatus(status, elapsed) {
+  const live = ['1H','2H','HT','ET','P','BT'];
+  if (live.includes(status)) return { cls: 'badge badge-live', txt: '🔴 EN COURS' + (elapsed ? ' · ' + elapsed + "'" : '') };
+  if (status === 'FT') return { cls: 'badge badge-won', txt: '✓ TERMINÉ' };
+  return { cls: 'badge badge-coming', txt: 'À VENIR' };
+}
+
+let currentPick = {};
+let currentBtn = null;
+
+function jouerPick(home, away, league, market, cote, btnEl) {
+  currentPick = { home, away, league, market, cote: parseFloat(cote) || 2.0 };
+  currentBtn = btnEl;
+  document.getElementById('popup-match').textContent = home + ' vs ' + away;
+  document.getElementById('popup-market').textContent = market + ' · x' + cote;
+  const savedMise = localStorage.getItem('mbp_mise') || '10';
+  document.getElementById('popup-mise').value = savedMise;
+  updateGain();
+  const overlay = document.getElementById('mise-overlay');
+  overlay.style.display = 'flex';
+}
+
+function fermerPopup() {
+  document.getElementById('mise-overlay').style.display = 'none';
+  currentBtn = null;
+}
+
+function changeMise(delta) {
+  const input = document.getElementById('popup-mise');
+  const val = Math.max(1, (parseFloat(input.value) || 10) + delta);
+  input.value = val;
+  updateGain();
+}
+
+function updateGain() {
+  const mise = parseFloat(document.getElementById('popup-mise').value) || 0;
+  const gain = (mise * currentPick.cote).toFixed(2);
+  document.getElementById('popup-gain').textContent = gain + '€';
+}
+
+async function confirmerPari() {
+  const mise = parseFloat(document.getElementById('popup-mise').value) || 0;
+  if (mise < 1) return;
+  localStorage.setItem('mbp_mise', mise);
+  const btn = document.getElementById('popup-confirm');
+  btn.textContent = '⏳...';
+  btn.disabled = true;
+  try {
+    const r = await fetch('/api/bets', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      credentials: 'include',
+      body: JSON.stringify({
+        home: currentPick.home, away: currentPick.away,
+        league: currentPick.league, market: currentPick.market,
+        cote: currentPick.cote, odds: currentPick.cote,
+        model_pct: 70, mise: mise, stake: mise,
+        match_date: new Date().toISOString().slice(0,10)
+      })
+    });
+    const d = await r.json();
+    if (d.ok) {
+      fermerPopup();
+      if (currentBtn) {
+        currentBtn.textContent = '✓ AJOUTÉ';
+        currentBtn.style.background = 'rgba(74,222,128,0.2)';
+        currentBtn.style.color = '#4ade80';
+        currentBtn.style.borderColor = 'rgba(74,222,128,0.4)';
+      }
+    } else {
+      btn.textContent = '❌ ERREUR';
+      setTimeout(() => { btn.textContent = 'CONFIRMER →'; btn.disabled = false; }, 2000);
+    }
+  } catch(err) {
+    btn.textContent = '❌ ERREUR';
+    setTimeout(() => { btn.textContent = 'CONFIRMER →'; btn.disabled = false; }, 2000);
+  }
+}
+
+function buildPickCard(pick, locked, idx) {
+  const status = getStatus(pick.status || 'NS', pick.elapsed);
+  const market = getMarketLabel(pick);
+  const isLive = ['1H','2H','HT','ET','P','BT'].includes(pick.status);
+  const isFT   = pick.status === 'FT';
+  const conf   = getConf(pick);
+  const cote   = getCote(pick);
+  const scoreHtml = (isLive || isFT)
+    ? '<div class="hp-score">' + (pick.home_score ?? '?') + '-' + (pick.away_score ?? '?') + '</div>'
+    : '<div class="hp-score time">' + (pick.time || '--:--') + '</div>';
+  const homeLogo = pick.home_logo ? '<img src="' + pick.home_logo + '" alt="">' : '⚽';
+  const awayLogo = pick.away_logo ? '<img src="' + pick.away_logo + '" alt="">' : '⚽';
+  const lockHtml = locked ? '<div class="lock-overlay" onclick="window.location.href=\'/subscribe\'"><div class="lock-box"><span>🔒</span><span class="lock-text">ABONNEMENT REQUIS</span></div></div>' : '';
+  const btnId = 'btn-joue-' + idx;
+  const joueBtnHtml = !isFT ? '<button id="' + btnId + '" class="btn-joue' + (isLive ? ' btn-joue-live' : '') + '" onclick="jouerPick(\'' + (pick.home||'').replace(/'/g,"\\'") + '\',\'' + (pick.away||'').replace(/'/g,"\\'") + '\',\'' + (pick.league||'').replace(/'/g,"\\'") + '\',\'' + market.replace(/'/g,"\\'") + '\',\'' + cote + '\',this)">' + (isLive ? '⚡ JE JOUE' : '🎯 JE JOUE') + '</button>' : '';
+
+  return '<div class="home-pick" onclick="window.location.href=\'/pronostic\'">'
+    + '<div class="hp-top"><span class="hp-league">' + (pick.league || 'Ligue') + '</span><span class="hp-time">' + (pick.time || '') + '</span></div>'
+    + '<div class="hp-market-center">' + market + '</div>'
+    + '<div style="text-align:center;margin-bottom:6px"><span class="' + status.cls + '">' + status.txt + '</span></div>'
+    + '<div class="hp-match-row">'
+    + '<div class="hp-team"><div class="hp-logo">' + homeLogo + '</div><div class="hp-name">' + (pick.home || '?') + '</div></div>'
+    + scoreHtml
+    + '<div class="hp-team right"><div class="hp-name">' + (pick.away || '?') + '</div><div class="hp-logo">' + awayLogo + '</div></div>'
+    + '</div>'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px" onclick="event.stopPropagation()">'
+    + '<div class="hp-pct">' + (conf ? conf + '%' : '') + '</div>'
+    + joueBtnHtml
+    + (cote ? '<div class="hp-cote">x' + cote + '</div>' : '')
+    + '</div>'
+    + lockHtml
+    + '</div>';
+}
+
+async function loadPicks() {
+  try {
+    const r = await fetch('/api/pronostic-du-jour', { credentials: 'include' });
+    const d = await r.json();
+    document.getElementById('picks-loader').style.display = 'none';
+    const container = document.getElementById('picks-container');
+    container.style.display = 'block';
+
+    const all = (d.pronostics || []).filter(p => (p.confidence || p.top_pct || 0) >= 55);
+    if (!all.length) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">⚽</div><div class="empty-title">Aucun pick disponible</div><div class="empty-sub">Les picks du jour seront disponibles prochainement.</div></div>';
+      return;
+    }
+
+    const picks = all.sort((a,b) => (b.top_pct||b.confidence||0) - (a.top_pct||a.confidence||0));
+    let html = '';
+    picks.forEach((pick, i) => {
+      const locked = pick.locked === true || i >= userLimit;
+      html += buildPickCard(pick, locked, i);
+    });
+    container.innerHTML = html;
+  } catch(e) {
+    document.getElementById('picks-loader').style.display = 'none';
+    document.getElementById('picks-container').style.display = 'block';
+    document.getElementById('picks-container').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Erreur de chargement</div></div>';
+  }
+}
+
+loadPicks();
+</script>
+{% endblock %}

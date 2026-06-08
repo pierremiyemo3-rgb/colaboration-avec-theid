@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% set active_page = 'lab' %}
+{% block title %}Morgan BetPro — LAB{% endblock %}
+
+{% block extra_css %}
+/* ── HERO ── */
+.lab-hero {
+  padding: 16px 0 20px;
+}
+.lab-hero-tag {
+  font-family: 'Orbitron', monospace;
+  font-size: 8px; letter-spacing: 3px;
+  color: var(--violet); opacity: .7; margin-bottom: 6px;
+}
+.lab-hero-title {
+  font-size: 22px; font-weight: 900; line-height: 1.2; margin-bottom: 6px;
+}
+.lab-hero-title .grad {
+  background: linear-gradient(90deg, #fff 0%, var(--violet) 60%, var(--or) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.lab-hero-sub { font-size: 11px; color: var(--text2); }
+
+/* ── GRILLE 2×2 ── */
+.lab-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+/* ── CARTE LAB ── */
+.lab-card {
+  background: var(--surface);
+  border: 1px solid var(--bv);
+  border-radius: 20px;
+  padding: 20px 16px;
+  cursor: pointer;
+  text-decoration: none;
+  display: flex; flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  aspect-ratio: 1 / 1.05;
+  position: relative; overflow: hidden;
+  transition: all .25s;
+}
+.lab-card::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 3px;
+}
+.lab-card:hover { transform: translateY(-3px); }
+
+/* Couleurs par carte */
+.lab-card.matchs::before  { background: linear-gradient(90deg, var(--violet), var(--or)); }
+.lab-card.ia::before      { background: linear-gradient(90deg, var(--or), var(--violet)); }
+.lab-card.ticket::before  { background: linear-gradient(90deg, var(--green), var(--violet)); }
+.lab-card.value::before   { background: linear-gradient(90deg, var(--blue), var(--violet)); }
+
+.lab-card.matchs { border-color: rgba(167,139,250,0.25); background: rgba(167,139,250,0.04); }
+.lab-card.ia     { border-color: rgba(212,175,55,0.25);  background: rgba(212,175,55,0.04); }
+.lab-card.ticket { border-color: rgba(74,222,128,0.22);  background: rgba(74,222,128,0.04); }
+.lab-card.value  { border-color: rgba(96,165,250,0.22);  background: rgba(96,165,250,0.04); }
+
+/* Icône */
+.lab-card-icon {
+  font-size: 38px; margin-bottom: 12px; line-height: 1;
+}
+
+/* Contenu */
+.lab-card-content { flex: 1; }
+.lab-card-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 10px; font-weight: 900; letter-spacing: 1px;
+  margin-bottom: 8px; line-height: 1.3;
+}
+.lab-card.matchs .lab-card-title { color: var(--violet); }
+.lab-card.ia     .lab-card-title { color: var(--or); }
+.lab-card.ticket .lab-card-title { color: var(--green); }
+.lab-card.value  .lab-card-title { color: var(--blue); }
+
+.lab-card-sub {
+  font-size: 10px; color: var(--text2); line-height: 1.5;
+}
+
+/* Flèche */
+.lab-card-arrow {
+  font-size: 18px; margin-top: 14px; align-self: flex-end;
+}
+.lab-card.matchs .lab-card-arrow { color: var(--violet); }
+.lab-card.ia     .lab-card-arrow { color: var(--or); }
+.lab-card.ticket .lab-card-arrow { color: var(--green); }
+.lab-card.value  .lab-card-arrow { color: var(--blue); }
+
+/* Glow au hover */
+.lab-card.matchs:hover { box-shadow: 0 8px 32px rgba(167,139,250,0.15); }
+.lab-card.ia:hover     { box-shadow: 0 8px 32px rgba(212,175,55,0.15); }
+.lab-card.ticket:hover { box-shadow: 0 8px 32px rgba(74,222,128,0.15); }
+.lab-card.value:hover  { box-shadow: 0 8px 32px rgba(96,165,250,0.15); }
+
+/* Badge count */
+.lab-badge {
+  position: absolute; top: 14px; right: 14px;
+  font-family: 'Orbitron', monospace; font-size: 8px; font-weight: 700;
+  padding: 2px 8px; border-radius: 20px;
+}
+.lab-card.matchs .lab-badge { background: var(--vdim); color: var(--violet); border: 1px solid var(--bv); }
+.lab-card.ia     .lab-badge { background: var(--odim); color: var(--or); border: 1px solid var(--bo); }
+.lab-card.ticket .lab-badge { background: rgba(74,222,128,0.08); color: var(--green); border: 1px solid rgba(74,222,128,0.2); }
+.lab-card.value  .lab-badge { background: rgba(96,165,250,0.08); color: var(--blue); border: 1px solid rgba(96,165,250,0.2); }
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<div class="lab-hero">
+  <div class="lab-hero-tag">🔬 LABORATOIRE IA</div>
+  <div class="lab-hero-title"><span class="grad">Outils d'analyse avancée</span></div>
+  <div class="lab-hero-sub">Matchs, prédictions IA, tickets et value bets</div>
+</div>
+
+<!-- GRILLE -->
+<div class="lab-grid">
+
+  <!-- Matchs du Jour -->
+  <a href="/lab/matchs" class="lab-card matchs">
+    <div class="lab-badge" id="badge-matchs">—</div>
+    <div class="lab-card-icon">📅</div>
+    <div class="lab-card-content">
+      <div class="lab-card-title">MATCHS DU JOUR</div>
+      <div class="lab-card-sub">1000+ matchs<br>Toutes ligues</div>
+    </div>
+    <div class="lab-card-arrow">→</div>
+  </a>
+
+  <!-- Analyse IA -->
+  <a href="/lab/analyse" class="lab-card ia">
+    <div class="lab-badge">IA</div>
+    <div class="lab-card-icon">✨</div>
+    <div class="lab-card-content">
+      <div class="lab-card-title">ANALYSE IA</div>
+      <div class="lab-card-sub">Prédiction IA<br>sur mesure</div>
+    </div>
+    <div class="lab-card-arrow">→</div>
+  </a>
+
+  <!-- Ticket Pro -->
+  <a href="/lab/ticket" class="lab-card ticket">
+    <div class="lab-badge">PRO</div>
+    <div class="lab-card-icon">🎟️</div>
+    <div class="lab-card-content">
+      <div class="lab-card-title">TICKET PRO</div>
+      <div class="lab-card-sub">Filtre · Choisis<br>Génère</div>
+    </div>
+    <div class="lab-card-arrow">→</div>
+  </a>
+
+  <!-- Value Bets -->
+  <a href="/lab/value" class="lab-card value">
+    <div class="lab-badge" id="badge-value">—</div>
+    <div class="lab-card-icon">📊</div>
+    <div class="lab-card-content">
+      <div class="lab-card-title">VALUE BETS</div>
+      <div class="lab-card-sub">Opportunités<br>détectées par l'IA</div>
+    </div>
+    <div class="lab-card-arrow">→</div>
+  </a>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Charger nombre de matchs du jour
+async function loadLabBadges() {
+  try {
+    const r = await fetch('/api/today', { credentials: 'include' });
+    const d = await r.json();
+    const count = (d.matches || []).length;
+    const badge = document.getElementById('badge-matchs');
+    if (badge) badge.textContent = count > 0 ? count + ' matchs' : '—';
+  } catch(e) {}
+
+  // Value bets count
+  try {
+    const r2 = await fetch('/api/pronostic-du-jour', { credentials: 'include' });
+    const d2 = await r2.json();
+    const vb = (d2.pronostics || []).filter(p => {
+      const c = p.conf || p.confidence || 0;
+      return c >= 75;
+    }).length;
+    const badge2 = document.getElementById('badge-value');
+    if (badge2) badge2.textContent = vb > 0 ? vb + ' bets' : '—';
+  } catch(e) {}
+}
+
+loadLabBadges();
+</script>
+{% endblock %}

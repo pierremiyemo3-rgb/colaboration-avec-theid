@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0015">
+  <title>Morgan BetPro — Connexion</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    :root {
+      --violet: #a78bfa; --violet2: #7c3aed;
+      --or: #d4af37;
+      --text: #f3f4f6; --text2: #9ca3af;
+      --bv: rgba(139,92,246,0.2); --bo: rgba(212,175,55,0.18);
+      --green: #4ade80; --red: #f87171;
+    }
+    html, body { height: 100%; overflow-x: hidden; }
+    body {
+      background: linear-gradient(160deg, #0a0015 0%, #060010 50%, #0a0800 100%);
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 20px;
+      position: relative;
+    }
+
+    /* Fond stade */
+    .bg-img {
+      position: fixed; inset: 0; z-index: 0;
+      background: url('https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=800&q=60') center/cover no-repeat;
+      opacity: 0.12;
+    }
+    .bg-overlay {
+      position: fixed; inset: 0; z-index: 1;
+      background: linear-gradient(160deg, rgba(10,0,21,0.88) 0%, rgba(6,0,16,0.92) 50%, rgba(10,8,0,0.95) 100%);
+    }
+
+    /* Contenu */
+    .wrap {
+      position: relative; z-index: 2;
+      width: 100%; max-width: 360px;
+    }
+
+    /* Logo */
+    .logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .logo-icon {
+      width: 46px; height: 46px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--violet2), var(--or));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 0 28px rgba(167,139,250,0.4);
+    }
+    .logo-name {
+      font-family: 'Orbitron', monospace;
+      font-size: 15px; font-weight: 900; letter-spacing: 3px;
+      background: linear-gradient(90deg, #fff, var(--or));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .logo-sub {
+      font-family: 'Orbitron', monospace;
+      font-size: 7px; letter-spacing: 3px;
+      color: var(--text2); margin-top: 3px;
+    }
+
+    /* Card */
+    .card {
+      background: rgba(10,0,21,0.85);
+      backdrop-filter: blur(24px);
+      border: 1px solid rgba(167,139,250,0.15);
+      border-radius: 24px;
+      padding: 24px 20px;
+    }
+
+    /* Onglets */
+    .tabs {
+      display: flex;
+      background: rgba(255,255,255,0.04);
+      border-radius: 12px;
+      padding: 4px;
+      gap: 4px;
+      margin-bottom: 22px;
+    }
+    .tab-btn {
+      flex: 1; padding: 10px;
+      border: none; background: transparent;
+      color: var(--text2);
+      font-family: 'Orbitron', monospace;
+      font-size: 9px; letter-spacing: 1px;
+      cursor: pointer; border-radius: 9px;
+      transition: all .2s; font-weight: 700;
+    }
+    .tab-btn.active { background: var(--violet2); color: #fff; }
+
+    /* Message */
+    .msg {
+      font-family: 'Orbitron', monospace;
+      font-size: 9px; letter-spacing: 1px;
+      padding: 10px 14px; border-radius: 8px;
+      margin-bottom: 16px; display: none; text-align: center;
+    }
+    .msg.error   { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); color: var(--red); }
+    .msg.success { background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); color: var(--green); }
+
+    /* Champs */
+    .field { margin-bottom: 14px; }
+    .field label {
+      display: block;
+      font-family: 'Orbitron', monospace;
+      font-size: 7px; letter-spacing: 2px;
+      color: var(--text2); margin-bottom: 7px;
+    }
+    .field input {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: var(--text); font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      outline: none; transition: border-color .2s;
+    }
+    .field input:focus { border-color: rgba(167,139,250,0.5); }
+    .field input::placeholder { color: rgba(255,255,255,0.2); }
+
+    /* Mot de passe oublié */
+    .forgot {
+      text-align: right;
+      font-size: 10px; color: var(--violet);
+      cursor: pointer; margin-bottom: 14px;
+      font-weight: 600;
+    }
+    .forgot:hover { color: var(--or); }
+
+    /* Bouton submit */
+    .btn-submit {
+      width: 100%; padding: 14px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--violet2), var(--or));
+      border: none; color: #fff;
+      font-family: 'Orbitron', monospace;
+      font-size: 11px; font-weight: 700; letter-spacing: 2px;
+      cursor: pointer; transition: all .2s;
+      box-shadow: 0 4px 24px rgba(124,58,237,0.25);
+      margin-bottom: 12px;
+    }
+    .btn-submit:hover { transform: translateY(-1px); box-shadow: 0 8px 32px rgba(124,58,237,0.35); }
+    .btn-submit:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+    /* Google */
+    .btn-google {
+      width: 100%; padding: 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text); font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all .2s;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      font-family: 'Inter', sans-serif;
+      margin-bottom: 20px;
+    }
+    .btn-google:hover { background: rgba(255,255,255,0.1); }
+    .google-icon {
+      width: 18px; height: 18px;
+      background: #fff; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: #4285f4; flex-shrink: 0;
+    }
+
+    /* Divider */
+    .divider {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 16px;
+    }
+    .div-line { flex: 1; height: 1px; background: rgba(255,255,255,0.07); }
+    .div-text {
+      font-family: 'Orbitron', monospace;
+      font-size: 8px; color: var(--text2); letter-spacing: 1px;
+    }
+
+    /* Communauté */
+    .community-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 8px; letter-spacing: 2px;
+      color: var(--text2); text-align: center; margin-bottom: 10px;
+    }
+    .community-btns { display: flex; gap: 8px; }
+    .btn-community {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      gap: 6px; padding: 11px 8px;
+      border-radius: 10px; font-size: 11px; font-weight: 700;
+      cursor: pointer; transition: all .2s; border: none;
+      font-family: 'Inter', sans-serif;
+    }
+    .btn-tg  { background: rgba(0,136,204,0.15); border: 1px solid rgba(0,136,204,0.25); color: #29b6f6; }
+    .btn-wa  { background: rgba(37,211,102,0.12); border: 1px solid rgba(37,211,102,0.25); color: #25d366; }
+    .btn-tg:hover  { background: rgba(0,136,204,0.25); }
+    .btn-wa:hover  { background: rgba(37,211,102,0.22); }
+
+    /* Retour */
+    .footer-link {
+      text-align: center;
+      margin-top: 20px;
+      font-family: 'Orbitron', monospace;
+      font-size: 8px; letter-spacing: 1px;
+    }
+    .footer-link a { color: var(--violet); text-decoration: none; }
+    .footer-link a:hover { color: var(--or); }
+
+    /* Modal mot de passe oublié */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+      display: none; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: rgba(10,0,21,0.97);
+      border: 1px solid var(--bv);
+      border-radius: 20px; padding: 24px;
+      width: 100%; max-width: 320px;
+      position: relative;
+    }
+    .modal::before {
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--violet), var(--or));
+    }
+    .modal-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 12px; font-weight: 700;
+      color: var(--text); margin-bottom: 8px;
+    }
+    .modal-sub { font-size: 11px; color: var(--text2); margin-bottom: 16px; line-height: 1.6; }
+    .modal-close {
+      position: absolute; top: 12px; right: 12px;
+      background: rgba(255,255,255,0.06); border: 1px solid var(--bv);
+      color: var(--text2); width: 28px; height: 28px;
+      border-radius: 8px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-img"></div>
+  <div class="bg-overlay"></div>
+
+  <div class="wrap">
+
+    <!-- Logo -->
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <div>
+        <div class="logo-name">MORGAN BET</div>
+        <div class="logo-sub">PRO PREDICTIONS</div>
+      </div>
+    </div>
+
+    <!-- Card -->
+    <div class="card">
+
+      <!-- Onglets -->
+      <div class="tabs">
+        <button class="tab-btn active" id="tab-login" onclick="switchTab('login')">CONNEXION</button>
+        <button class="tab-btn" id="tab-register" onclick="switchTab('register')">INSCRIPTION</button>
+      </div>
+
+      <!-- Message -->
+      <div class="msg" id="msg"></div>
+
+      <!-- CONNEXION -->
+      <div id="form-login">
+        <div class="field">
+          <label>EMAIL</label>
+          <input type="email" id="login-email" placeholder="votre@email.com" autocomplete="email">
+        </div>
+        <div class="field">
+          <label>MOT DE PASSE</label>
+          <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <div class="forgot" onclick="openForgot()">Mot de passe oublié ?</div>
+        <button class="btn-submit" id="btn-login" onclick="doLogin()">ACCÉDER →</button>
+        <button class="btn-google" onclick="window.location.href='/auth/google'">
+          <div class="google-icon">G</div>
+          Continuer avec Google
+        </button>
+      </div>
+
+      <!-- INSCRIPTION -->
+      <div id="form-register" style="display:none">
+        <div class="field">
+          <label>NOM D'UTILISATEUR</label>
+          <input type="text" id="reg-username" placeholder="ex: KarimParis" autocomplete="username">
+        </div>
+        <div class="field">
+          <label>EMAIL</label>
+          <input type="email" id="reg-email" placeholder="votre@email.com" autocomplete="email">
+        </div>
+        <div class="field">
+          <label>MOT DE PASSE (min. 6 caractères)</label>
+          <input type="password" id="reg-password" placeholder="••••••••" autocomplete="new-password">
+        </div>
+        <div class="field">
+          <label>CONFIRMER MOT DE PASSE</label>
+          <input type="password" id="reg-confirm" placeholder="••••••••" autocomplete="new-password">
+        </div>
+        <button class="btn-submit" id="btn-register" onclick="doRegister()">CRÉER MON COMPTE →</button>
+        <button class="btn-google" onclick="window.location.href='/auth/google'">
+          <div class="google-icon">G</div>
+          Continuer avec Google
+        </button>
+      </div>
+
+      <!-- Divider communauté -->
+      <div class="divider">
+        <div class="div-line"></div>
+        <div class="div-text">COMMUNAUTÉ</div>
+        <div class="div-line"></div>
+      </div>
+
+      <div class="community-title">REJOINDRE NOS GROUPES</div>
+      <div class="community-btns">
+        <button class="btn-community btn-tg" onclick="window.open('https://t.me/+gb0PJPqLonBiNjc0','_blank')">✈️ Telegram</button>
+        <button class="btn-community btn-wa" onclick="window.open('https://wa.me/','_blank')">💬 WhatsApp</button>
+      </div>
+
+    </div>
+
+    <div class="footer-link">
+      <a href="/">← Retour à l'accueil</a>
+    </div>
+
+  </div>
+
+  <!-- Modal mot de passe oublié -->
+  <div class="modal-overlay" id="modal-forgot">
+    <div class="modal">
+      <button class="modal-close" onclick="closeForgot()">✕</button>
+      <div class="modal-title">🔑 Mot de passe oublié</div>
+      <div class="modal-sub">Entre ton adresse email et on t'envoie un lien de réinitialisation.</div>
+      <div class="field">
+        <label>EMAIL</label>
+        <input type="email" id="forgot-email" placeholder="votre@email.com">
+      </div>
+      <div class="msg" id="msg-forgot"></div>
+      <button class="btn-submit" onclick="doForgot()">ENVOYER LE LIEN →</button>
+    </div>
+  </div>
+
+  <script>
+    const API = window.location.origin;
+
+    // ── Vérifier si déjà connecté ──
+    fetch(API + '/api/auth/me', { credentials: 'include' })
+      .then(r => r.json())
+      .then(d => { if (d.logged_in) window.location.href = '/app'; })
+      .catch(() => {});
+
+    // ── Switcher onglets ──
+    function switchTab(tab) {
+      document.getElementById('form-login').style.display    = tab === 'login' ? '' : 'none';
+      document.getElementById('form-register').style.display = tab === 'register' ? '' : 'none';
+      document.getElementById('tab-login').className    = 'tab-btn' + (tab === 'login' ? ' active' : '');
+      document.getElementById('tab-register').className = 'tab-btn' + (tab === 'register' ? ' active' : '');
+      document.getElementById('msg').style.display = 'none';
+    }
+
+    // ── Message ──
+    function showMsg(text, type, id = 'msg') {
+      const el = document.getElementById(id);
+      el.textContent = text;
+      el.className = 'msg ' + type;
+      el.style.display = 'block';
+    }
+
+    // ── Connexion ──
+    async function doLogin() {
+      const email    = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      if (!email || !password) { showMsg('Remplis tous les champs', 'error'); return; }
+      const btn = document.getElementById('btn-login');
+      btn.disabled = true; btn.textContent = 'CONNEXION...';
+      try {
+        const r = await fetch(API + '/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ email, password })
+        });
+        const d = await r.json();
+        if (d.ok) {
+          showMsg('Connexion réussie !', 'success');
+          setTimeout(() => window.location.href = '/app', 800);
+        } else {
+          showMsg(d.error || 'Email ou mot de passe incorrect', 'error');
+          btn.disabled = false; btn.textContent = 'ACCÉDER →';
+        }
+      } catch(e) {
+        showMsg('Erreur réseau', 'error');
+        btn.disabled = false; btn.textContent = 'ACCÉDER →';
+      }
+    }
+
+    // ── Inscription ──
+    async function doRegister() {
+      const username = document.getElementById('reg-username').value.trim();
+      const email    = document.getElementById('reg-email').value.trim();
+      const password = document.getElementById('reg-password').value;
+      const confirm  = document.getElementById('reg-confirm').value;
+      if (!username || !email || !password) { showMsg('Remplis tous les champs', 'error'); return; }
+      if (password !== confirm) { showMsg('Les mots de passe ne correspondent pas', 'error'); return; }
+      if (password.length < 6) { showMsg('Minimum 6 caractères', 'error'); return; }
+      const btn = document.getElementById('btn-register');
+      btn.disabled = true; btn.textContent = 'CRÉATION...';
+      try {
+        const r = await fetch(API + '/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ username, email, password })
+        });
+        const d = await r.json();
+        if (d.ok) {
+          showMsg('Compte créé ! Bienvenue ' + d.user.username + ' 🎉', 'success');
+          setTimeout(() => window.location.href = '/app', 1000);
+        } else {
+          showMsg(d.error || 'Erreur lors de la création', 'error');
+          btn.disabled = false; btn.textContent = 'CRÉER MON COMPTE →';
+        }
+      } catch(e) {
+        showMsg('Erreur réseau', 'error');
+        btn.disabled = false; btn.textContent = 'CRÉER MON COMPTE →';
+      }
+    }
+
+    // ── Mot de passe oublié ──
+    function openForgot() { document.getElementById('modal-forgot').classList.add('open'); }
+    function closeForgot() {
+      document.getElementById('modal-forgot').classList.remove('open');
+      document.getElementById('msg-forgot').style.display = 'none';
+    }
+
+    async function doForgot() {
+      const email = document.getElementById('forgot-email').value.trim();
+      if (!email) { showMsg('Entre ton email', 'error', 'msg-forgot'); return; }
+      try {
+        const r = await fetch(API + '/api/auth/forgot-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const d = await r.json();
+        if (d.ok) showMsg('Email envoyé ! Vérifie ta boîte.', 'success', 'msg-forgot');
+        else showMsg(d.error || 'Email introuvable', 'error', 'msg-forgot');
+      } catch(e) {
+        showMsg('Erreur réseau', 'error', 'msg-forgot');
+      }
+    }
+
+    // ── Enter pour soumettre ──
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      if (document.getElementById('modal-forgot').classList.contains('open')) { doForgot(); return; }
+      if (document.getElementById('form-login').style.display !== 'none') doLogin();
+      else doRegister();
+    });
+
+    // ── Fermer modal en cliquant overlay ──
+    document.getElementById('modal-forgot').addEventListener('click', function(e) {
+      if (e.target === this) closeForgot();
+    });
+  </script>
+</body>
+</html>

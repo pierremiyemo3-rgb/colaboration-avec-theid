@@ -1,0 +1,414 @@
+{% extends "base.html" %}
+{% set active_page = 'paris' %}
+{% block title %}Morgan BetPro — Mes Paris{% endblock %}
+
+{% block extra_css %}
+/* ── ONGLETS ── */
+.paris-tabs {
+  display:flex; padding:12px 16px 0; gap:6px;
+  background:rgba(10,0,21,0.97); flex-shrink:0;
+}
+.paris-tab {
+  flex:1; padding:10px 4px; border-radius:10px 10px 0 0;
+  font-family:'Orbitron',monospace; font-size:10px; font-weight:700;
+  letter-spacing:.5px; text-align:center; cursor:pointer;
+  color:var(--text2); border:1px solid transparent; border-bottom:none; transition:all .2s;
+}
+.paris-tab.active { background:rgba(167,139,250,0.1); border-color:var(--bv); color:var(--violet); }
+.paris-tab.live { color:var(--green); }
+.paris-tab.live.active { background:rgba(74,222,128,0.08); border-color:rgba(74,222,128,0.2); color:var(--green); }
+.tab-bar { height:1px; background:linear-gradient(90deg,var(--violet),var(--or)); margin:0; flex-shrink:0; }
+
+/* ── TICKET CARD ── */
+.ticket-card {
+  background:var(--surface); border:1px solid var(--bv);
+  border-radius:14px; padding:14px; margin-bottom:10px;
+  cursor:pointer; transition:all .2s; position:relative; overflow:hidden;
+}
+.ticket-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+.ticket-card.live::before  { background:linear-gradient(90deg,var(--green),transparent); }
+.ticket-card.won::before   { background:linear-gradient(90deg,var(--green),transparent); }
+.ticket-card.lost::before  { background:linear-gradient(90deg,var(--red),transparent); }
+.ticket-card.fav::before   { background:linear-gradient(90deg,var(--or),transparent); }
+.ticket-card:hover { border-color:rgba(167,139,250,0.3); transform:translateY(-1px); }
+
+.tc-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.tc-date { font-size:13px; color:var(--text2); font-weight:600; }
+.tc-badge { padding:4px 12px; border-radius:20px; font-size:10px; font-weight:700; font-family:'Orbitron',monospace; letter-spacing:.5px; }
+.badge-live  { background:rgba(74,222,128,0.1); color:var(--green); border:1px solid rgba(74,222,128,0.25); animation:pulse-badge 2s infinite; }
+.badge-won   { background:rgba(74,222,128,0.08); color:var(--green); border:1px solid rgba(74,222,128,0.2); }
+.badge-lost  { background:rgba(248,113,113,0.08); color:var(--red); border:1px solid rgba(248,113,113,0.2); }
+.badge-fav   { background:var(--odim); color:var(--or); border:1px solid var(--bo); }
+@keyframes pulse-badge { 0%,100%{opacity:1} 50%{opacity:.6} }
+
+.tc-stats { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px; }
+.tc-stat { text-align:center; }
+.tc-stat-val { font-family:'Orbitron',monospace; font-size:17px; font-weight:900; }
+.tc-stat-val.or { background:linear-gradient(90deg,var(--violet),var(--or)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.tc-stat-val.green { color:var(--green); }
+.tc-stat-val.red   { color:var(--red); }
+.tc-stat-lbl { font-size:10px; color:var(--text2); font-family:'Orbitron',monospace; letter-spacing:.5px; margin-top:3px; }
+
+.tc-picks-preview { display:flex; flex-direction:column; gap:8px; border-top:1px solid rgba(255,255,255,0.05); padding-top:12px; }
+.tc-pick-row { display:flex; align-items:center; justify-content:space-between; font-size:13px; }
+.tc-pick-match { color:var(--text); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:70%; }
+.tc-pick-status { font-size:10px; font-weight:700; padding:3px 8px; border-radius:6px; flex-shrink:0; }
+.ps-won   { background:rgba(74,222,128,0.1); color:var(--green); }
+.ps-lost  { background:rgba(248,113,113,0.08); color:var(--red); }
+.ps-live  { background:rgba(212,175,55,0.08); color:var(--or); }
+.tc-arrow { position:absolute; right:14px; bottom:14px; font-size:14px; color:var(--text2); }
+
+/* ── DÉTAIL OVERLAY ── */
+.detail-overlay {
+  position:fixed; inset:0;
+  background:linear-gradient(160deg,#0a0015,#060010,#0a0800);
+  z-index:500; display:none; flex-direction:column;
+  overflow:hidden;
+}
+.detail-overlay.open { display:flex; }
+
+.detail-nav {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 16px; background:rgba(10,0,21,0.97);
+  backdrop-filter:blur(16px); position:relative; flex-shrink:0;
+}
+.detail-nav::after { content:''; position:absolute; bottom:0; left:0; right:0; height:1px; background:linear-gradient(90deg,var(--violet),var(--or)); }
+.btn-back-detail {
+  display:flex; align-items:center; gap:6px;
+  background:var(--vdim); border:1px solid var(--bv);
+  color:var(--violet); padding:6px 12px; border-radius:10px;
+  font-size:11px; font-weight:700; cursor:pointer; font-family:'Inter',sans-serif;
+}
+.detail-title { font-family:'Orbitron',monospace; font-size:11px; color:var(--text); font-weight:700; }
+.detail-badge-wrap { flex-shrink:0; }
+
+.detail-body { flex:1; overflow-y:auto; padding:16px; scrollbar-width:none; padding-bottom:30px; }
+.detail-body::-webkit-scrollbar { display:none; }
+
+.detail-header {
+  background:var(--surface); border:1px solid var(--bv);
+  border-radius:14px; padding:16px; margin-bottom:16px;
+  display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;
+  text-align:center; position:relative; overflow:hidden;
+}
+.detail-header::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--violet),var(--or),var(--violet)); }
+.dh-val { font-family:'Orbitron',monospace; font-size:18px; font-weight:900; margin-bottom:4px; }
+.dh-lbl { font-size:9px; color:var(--text2); font-family:'Orbitron',monospace; }
+
+.detail-section-title { font-family:'Orbitron',monospace; font-size:9px; color:var(--text2); letter-spacing:2px; margin-bottom:10px; }
+
+.detail-pick {
+  background:var(--surface); border:1px solid var(--bv);
+  border-radius:12px; padding:12px 14px; margin-bottom:8px;
+  display:flex; align-items:center; gap:12px;
+  position:relative; overflow:hidden;
+}
+.detail-pick::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:12px 0 0 12px; }
+.detail-pick.won::before  { background:var(--green); }
+.detail-pick.lost::before { background:var(--red); }
+.detail-pick.live::before { background:var(--or); }
+.dp-info { flex:1; min-width:0; }
+.dp-match  { font-size:13px; font-weight:800; color:var(--text); margin-bottom:3px; }
+.dp-market { font-size:10px; color:var(--text2); }
+.dp-score  { font-family:'Orbitron',monospace; font-size:13px; font-weight:900; color:var(--or); flex-shrink:0; }
+
+/* Stats banner */
+.stats-banner {
+  display:flex; gap:0; background:var(--surface); border:1px solid var(--bv);
+  border-radius:14px; overflow:hidden; margin-bottom:14px;
+}
+.sb-item { flex:1; text-align:center; padding:12px 4px; border-right:1px solid rgba(255,255,255,0.05); }
+.sb-item:last-child { border-right:none; }
+.sb-val { font-family:'Orbitron',monospace; font-size:14px; font-weight:900; margin-bottom:3px; }
+.sb-lbl { font-size:7px; color:var(--text2); font-family:'Orbitron',monospace; }
+{% endblock %}
+
+{% block content_class %}no-pad{% endblock %}
+
+{% block content %}
+
+<!-- ONGLETS -->
+<div class="paris-tabs">
+  <div class="paris-tab live active" onclick="switchTab('live',this)">🔴 LIVE</div>
+  <div class="paris-tab" onclick="switchTab('won',this)">✓ GAGNÉ</div>
+  <div class="paris-tab" onclick="switchTab('lost',this)">✗ PERDU</div>
+  <div class="paris-tab" onclick="switchTab('fav',this)">⭐ FAVORIS</div>
+</div>
+<div class="tab-bar"></div>
+
+<div style="padding:14px 16px;padding-bottom:calc(var(--nav-h)+20px)">
+
+  <!-- Stats banner -->
+  <div class="stats-banner">
+    <div class="sb-item"><div class="sb-val text-violet" id="sb-total">—</div><div class="sb-lbl">TOTAL</div></div>
+    <div class="sb-item"><div class="sb-val text-green" id="sb-won">—</div><div class="sb-lbl">GAGNÉS</div></div>
+    <div class="sb-item"><div class="sb-val text-or" id="sb-winrate">—</div><div class="sb-lbl">RÉUSSITE</div></div>
+    <div class="sb-item"><div class="sb-val" id="sb-gain">—</div><div class="sb-lbl">NET</div></div>
+  </div>
+
+  <!-- Loader -->
+  <div class="loader" id="paris-loader"><div class="loader-ring"></div><div class="loader-text">CHARGEMENT...</div></div>
+
+  <!-- Container -->
+  <div id="paris-container" style="display:none"></div>
+</div>
+
+<!-- DÉTAIL OVERLAY -->
+<div class="detail-overlay" id="detail-overlay">
+  <div class="detail-nav">
+    <div class="btn-back-detail" onclick="closeDetail()">← Retour</div>
+    <div class="detail-title" id="detail-title">Ticket</div>
+    <div class="detail-badge-wrap" id="detail-badge"></div>
+  </div>
+  <div class="detail-body" id="detail-body"></div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const sym = { eur:'€', xaf:' FCFA', usd:'$' }[localStorage.getItem('mbp_currency')||'eur'] || '€';
+let allPicks = [];
+let currentTab = 'live';
+let favIds = JSON.parse(localStorage.getItem('mbp_favs') || '[]');
+
+function fmt(v, showPlus=true) {
+  const val = parseFloat(v||0).toFixed(2);
+  return (showPlus && v > 0 ? '+' : '') + val + sym;
+}
+
+function getMarketLabel(mt) {
+  const m = (mt||'').toLowerCase();
+  if (m.includes('gg')||m.includes('bts')) return 'GG';
+  if (m.includes('15')||m.includes('1.5')) return '+1.5';
+  if (m.includes('25')||m.includes('2.5')) return '+2.5';
+  if (m.includes('victoire')||m.includes('home')) return 'V1';
+  if (m.includes('buteur')||m.includes('scorer')) return 'BUTEUR';
+  if (m.includes('exact')) return 'SCORE EXACT';
+  return (mt||'PICK').toUpperCase().slice(0,10);
+}
+
+function formatDate(d) {
+  if (!d) return '—';
+  try {
+    return new Date(d).toLocaleDateString('fr-FR', {weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  } catch(e) { return d; }
+}
+
+async function loadParis() {
+  try {
+    // D'abord valider les paris du jour
+    await fetch('/api/picks/validate-today', { credentials:'include' }).catch(()=>{});
+    
+    const r = await fetch('/api/picks/history?days=90', { credentials:'include' });
+    const d = await r.json();
+    allPicks = d.picks || [];
+    updateStats();
+    renderTab(currentTab);
+    document.getElementById('paris-loader').style.display = 'none';
+    document.getElementById('paris-container').style.display = 'block';
+  } catch(e) {
+    document.getElementById('paris-loader').innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Erreur</div></div>`;
+  }
+}
+
+function updateStats() {
+  const won     = allPicks.filter(p=>p.result==='won').length;
+  const lost    = allPicks.filter(p=>p.result==='lost').length;
+  const decided = won + lost;
+  const gain    = allPicks.filter(p=>p.result==='won').reduce((s,p)=>s+(parseFloat(p.gain)||0),0);
+  const perte   = allPicks.filter(p=>p.result==='lost').reduce((s,p)=>s+(parseFloat(p.mise||p.stake)||0),0);
+  const net     = gain - perte;
+  document.getElementById('sb-total').textContent   = allPicks.length;
+  document.getElementById('sb-won').textContent     = won;
+  document.getElementById('sb-winrate').textContent = decided ? Math.round(won/decided*100)+'%' : '—';
+  const gainEl = document.getElementById('sb-gain');
+  gainEl.textContent = net ? fmt(net) : '—';
+  gainEl.className = 'sb-val ' + (net > 0 ? 'text-green' : net < 0 ? 'text-red' : 'text-muted');
+}
+
+function renderTab(tab) {
+  let picks;
+  if (tab==='live')     picks = allPicks.filter(p => !p.result || p.result==='pending');
+  else if (tab==='won')  picks = allPicks.filter(p => p.result==='won');
+  else if (tab==='lost') picks = allPicks.filter(p => p.result==='lost');
+  else if (tab==='fav')  picks = allPicks.filter(p => favIds.includes(p.id));
+
+  const container = document.getElementById('paris-container');
+  if (!picks.length) {
+    const msgs = { live:'Aucun pari en cours', won:'Aucun pari gagné', lost:'Aucun pari perdu', fav:'Aucun favori' };
+    const icons = { live:'🎯', won:'🏆', lost:'📉', fav:'⭐' };
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">${icons[tab]}</div><div class="empty-title">${msgs[tab]}</div><div class="empty-sub">Tes paris apparaîtront ici.</div></div>`;
+    return;
+  }
+
+  container.innerHTML = picks.map(p => buildCard(p)).join('');
+}
+
+function buildCard(p) {
+  const r     = p.result || 'pending';
+  const cls   = r==='won'?'won':r==='lost'?'lost':favIds.includes(p.id)?'fav':'live';
+  const badge = r==='won'
+    ? `<span class="tc-badge badge-won">✓ GAGNÉ</span>`
+    : r==='lost'
+    ? `<span class="tc-badge badge-lost">✗ PERDU</span>`
+    : `<span class="tc-badge badge-live">🔴 LIVE</span>`;
+
+  const cote  = parseFloat(p.cote||p.odds||0);
+  const mise  = parseFloat(p.mise||p.stake||0);
+  const gain  = parseFloat(p.gain||0);
+  const market = getMarketLabel(p.market||p.market_type||'');
+  const date  = formatDate(p.match_date||p.created_at||'');
+
+  // Statut individuel du pick
+  const psClass = r==='won'?'ps-won':r==='lost'?'ps-lost':'ps-live';
+  const psTxt   = r==='won'?'✓ WON':r==='lost'?'✗ LOST':'⏳ EN COURS';
+
+  return `
+    <div class="ticket-card ${cls}" onclick="openDetail(${p.id})">
+      <div class="tc-top">
+        <div class="tc-date">📅 ${date}</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          ${badge}
+          <div onclick="event.stopPropagation();deletePari(${p.id})" style="font-size:16px;cursor:pointer;opacity:.5;padding:2px 6px">🗑️</div>
+        </div>
+      </div>
+      <div class="tc-stats">
+        <div class="tc-stat">
+          <div class="tc-stat-val or">${cote?'×'+cote.toFixed(2):'—'}</div>
+          <div class="tc-stat-lbl">COTE</div>
+        </div>
+        <div class="tc-stat">
+          <div class="tc-stat-val" style="color:var(--text)">${mise?mise.toFixed(0)+sym:'—'}</div>
+          <div class="tc-stat-lbl">MISE</div>
+        </div>
+        <div class="tc-stat">
+          <div class="tc-stat-val ${r==='won'?'green':r==='lost'?'red':'green'}">
+            ${r==='won'?fmt(gain):r==='lost'?'-'+mise.toFixed(0)+sym:(cote&&mise?(mise*cote).toFixed(0)+sym:'—')}
+          </div>
+          <div class="tc-stat-lbl">${r==='won'?'GAGNÉ':r==='lost'?'PERDU':'GAIN POT.'}</div>
+        </div>
+      </div>
+      <div class="tc-picks-preview">
+        <div class="tc-pick-row">
+          <span class="tc-pick-match">${p.home||'?'} vs ${p.away||'?'} · ${market}</span>
+          <span class="tc-pick-status ${psClass}">${psTxt}</span>
+        </div>
+        ${p.score_ft ? `<div style="font-family:'Orbitron',monospace;font-size:11px;color:var(--or);text-align:center;margin-top:4px">Score final : ${p.score_ft}</div>` : ''}
+      </div>
+      <div class="tc-arrow">→</div>
+    </div>`;
+}
+
+function openDetail(id) {
+  const p = allPicks.find(x => x.id === id);
+  if (!p) return;
+  const r     = p.result || 'pending';
+  const cote  = parseFloat(p.cote||p.odds||0);
+  const mise  = parseFloat(p.mise||p.stake||0);
+  const gain  = parseFloat(p.gain||0);
+  const market = getMarketLabel(p.market||p.market_type||'');
+  const isFav = favIds.includes(id);
+
+  const badge = r==='won'
+    ? `<span class="tc-badge badge-won">✓ GAGNÉ</span>`
+    : r==='lost'
+    ? `<span class="tc-badge badge-lost">✗ PERDU</span>`
+    : `<span class="tc-badge badge-live">🔴 LIVE</span>`;
+
+  document.getElementById('detail-title').textContent = `${p.home||'?'} vs ${p.away||'?'}`;
+  document.getElementById('detail-badge').innerHTML = badge;
+
+  // Score final
+  const scoreFinal = p.score_ft
+    ? `<div style="background:linear-gradient(135deg,var(--odim),var(--vdim));border:1px solid var(--bo);border-radius:12px;padding:14px;text-align:center;margin-bottom:14px">
+        <div style="font-family:'Orbitron',monospace;font-size:8px;color:var(--text2);letter-spacing:2px;margin-bottom:6px">SCORE FINAL</div>
+        <div style="font-family:'Orbitron',monospace;font-size:32px;font-weight:900;color:var(--or)">${p.score_ft}</div>
+       </div>` : '';
+
+  document.getElementById('detail-body').innerHTML = `
+    ${scoreFinal}
+    <!-- Stats -->
+    <div class="detail-header">
+      <div><div class="dh-val or">${cote?'×'+cote.toFixed(2):'—'}</div><div class="dh-lbl">COTE</div></div>
+      <div><div class="dh-val" style="color:var(--text)">${mise?mise.toFixed(0)+sym:'—'}</div><div class="dh-lbl">MISE</div></div>
+      <div><div class="dh-val ${r==='won'?'text-green':'text-or'}">${r==='won'?fmt(gain):r==='lost'?'-'+mise.toFixed(0)+sym:(cote&&mise?(mise*cote).toFixed(0)+sym:'—')}</div><div class="dh-lbl">${r==='won'?'GAGNÉ':r==='lost'?'PERDU':'GAIN POT.'}</div></div>
+    </div>
+
+    <!-- Pick -->
+    <div class="detail-section-title">🎯 DÉTAILS DU PICK</div>
+    <div class="detail-pick ${r==='won'?'won':r==='lost'?'lost':'live'}">
+      <div class="dp-info">
+        <div class="dp-match">${p.home||'?'} vs ${p.away||'?'}</div>
+        <div class="dp-market">${market} · ${p.league||''}</div>
+      </div>
+      ${p.score_ft?`<div class="dp-score">${p.score_ft}</div>`:''}
+    </div>
+
+    <!-- Infos -->
+    <div style="background:var(--surface);border:1px solid var(--bv);border-radius:12px;padding:14px;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:11px;color:var(--text2)">Date</span>
+        <span style="font-family:'Orbitron',monospace;font-size:10px;color:var(--text)">${formatDate(p.match_date||p.created_at||'')}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:11px;color:var(--text2)">Confiance IA</span>
+        <span style="font-family:'Orbitron',monospace;font-size:10px;color:var(--violet)">${p.conf||p.confidence||'—'}%</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0">
+        <span style="font-size:11px;color:var(--text2)">Heure</span>
+        <span style="font-family:'Orbitron',monospace;font-size:10px;color:var(--text)">${p.time||'—'}</span>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <button onclick="toggleFav(${id})" style="width:100%;padding:11px;border-radius:10px;background:var(--odim);border:1px solid var(--bo);color:var(--or);font-family:'Orbitron',monospace;font-size:9px;font-weight:700;cursor:pointer;margin-bottom:8px">
+      ${isFav?'💛 Retirer des favoris':'⭐ Ajouter aux favoris'}
+    </button>
+    <button onclick="deletePari(${id})" style="width:100%;padding:11px;border-radius:10px;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);color:var(--red);font-family:'Orbitron',monospace;font-size:9px;font-weight:700;cursor:pointer">
+      🗑️ Supprimer ce pari
+    </button>
+  `;
+
+  document.getElementById('detail-overlay').classList.add('open');
+}
+
+function closeDetail() {
+  document.getElementById('detail-overlay').classList.remove('open');
+}
+
+function toggleFav(id) {
+  if (favIds.includes(id)) favIds = favIds.filter(x=>x!==id);
+  else favIds.push(id);
+  localStorage.setItem('mbp_favs', JSON.stringify(favIds));
+  closeDetail();
+  renderTab(currentTab);
+}
+
+async function deletePari(id) {
+  if (!confirm('Supprimer ce pari ?')) return;
+  try {
+    const r = await fetch(`/api/bets/${id}`, {method:'DELETE', credentials:'include'});
+    const d = await r.json();
+    if (!d.ok) { showToast('Erreur suppression', 'error'); return; }
+  } catch(e) {}
+  // Supprimer localement sans recharger l'API
+  allPicks = allPicks.filter(p => p.id !== id);
+  favIds = favIds.filter(x => x !== id);
+  localStorage.setItem('mbp_favs', JSON.stringify(favIds));
+  closeDetail();
+  updateStats();
+  renderTab(currentTab);
+  showToast('Pari supprimé', 'success');
+}
+
+function switchTab(tab, btn) {
+  document.querySelectorAll('.paris-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentTab = tab;
+  renderTab(tab);
+}
+
+loadParis();
+</script>
+{% endblock %}

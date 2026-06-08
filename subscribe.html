@@ -1,0 +1,415 @@
+{% extends "base.html" %}
+{% set active_page = 'menu' %}
+{% block title %}Morgan BetPro — Abonnement{% endblock %}
+
+{% block extra_css %}
+/* ── HERO ── */
+.sub-hero {
+  text-align: center; padding: 20px 0 24px;
+}
+.sub-hero-tag {
+  font-family: 'Orbitron', monospace; font-size: 8px;
+  letter-spacing: 3px; color: var(--violet); opacity: .7; margin-bottom: 8px;
+}
+.sub-hero-title {
+  font-size: 22px; font-weight: 900; margin-bottom: 6px;
+  background: linear-gradient(90deg, #fff 40%, var(--or));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.sub-hero-sub { font-size: 11px; color: var(--text2); margin-bottom: 20px; }
+
+/* ── TOGGLE DEVISE ── */
+.currency-row {
+  display: flex; align-items: center; justify-content: center;
+  gap: 6px; margin-bottom: 20px;
+}
+.cur-btn {
+  padding: 7px 18px; border-radius: 20px;
+  font-family: 'Orbitron', monospace; font-size: 9px; font-weight: 700;
+  letter-spacing: 1px; cursor: pointer; transition: all .2s;
+  border: 1px solid var(--border); background: transparent; color: var(--text2);
+}
+.cur-btn.active { background: var(--violet); color: #fff; border-color: var(--violet); }
+
+/* ── CODE PROMO ── */
+.promo-row {
+  display: flex; gap: 8px; margin-bottom: 20px;
+  background: var(--surface); border: 1px solid var(--bv);
+  border-radius: 12px; padding: 10px 12px;
+}
+.promo-input {
+  flex: 1; background: transparent; border: none;
+  color: var(--text); font-family: 'Orbitron', monospace;
+  font-size: 11px; font-weight: 700; letter-spacing: 2px;
+  outline: none; text-transform: uppercase;
+}
+.promo-input::placeholder { color: var(--text2); font-size: 9px; font-weight: 400; letter-spacing: 1px; }
+.btn-promo {
+  padding: 6px 14px; border-radius: 8px;
+  background: var(--vdim); border: 1px solid var(--bv);
+  color: var(--violet); font-family: 'Orbitron', monospace;
+  font-size: 8px; font-weight: 700; cursor: pointer;
+}
+.promo-badge {
+  display: none; text-align: center; margin-bottom: 12px;
+  font-family: 'Orbitron', monospace; font-size: 9px; font-weight: 700;
+  color: var(--green); background: rgba(74,222,128,0.08);
+  border: 1px solid rgba(74,222,128,0.2); border-radius: 8px; padding: 7px;
+}
+.promo-badge.show { display: block; }
+.promo-err {
+  display: none; text-align: center; margin-bottom: 12px;
+  font-family: 'Orbitron', monospace; font-size: 9px;
+  color: var(--red); background: rgba(248,113,113,0.08);
+  border: 1px solid rgba(248,113,113,0.2); border-radius: 8px; padding: 7px;
+}
+.promo-err.show { display: block; }
+
+/* ── PLANS ── */
+.plan-card {
+  border-radius: 18px; padding: 18px;
+  margin-bottom: 12px; position: relative; overflow: hidden;
+  cursor: default;
+}
+.plan-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.plan-card.free    { background: var(--surface); border: 1px solid var(--border); }
+.plan-card.starter { background: rgba(74,222,128,0.04); border: 1px solid rgba(74,222,128,0.2); }
+.plan-card.starter::before { background: linear-gradient(90deg, var(--green), transparent); }
+.plan-card.pro     { background: var(--vdim); border: 1px solid var(--bv); }
+.plan-card.pro::before     { background: linear-gradient(90deg, var(--violet), var(--or)); }
+.plan-card.vip     { background: var(--odim); border: 1px solid var(--bo); }
+.plan-card.vip::before     { background: linear-gradient(90deg, var(--or), var(--violet)); }
+
+/* Badge populaire */
+.plan-pop-badge {
+  position: absolute; top: 14px; right: 14px;
+  font-family: 'Orbitron', monospace; font-size: 7px; font-weight: 700;
+  padding: 3px 10px; border-radius: 20px;
+}
+.plan-card.pro .plan-pop-badge  { background: var(--vdim); color: var(--violet); border: 1px solid var(--bv); }
+.plan-card.vip .plan-pop-badge  { background: var(--odim); color: var(--or); border: 1px solid var(--bo); }
+
+/* Header plan */
+.plan-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
+.plan-name { font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 900; letter-spacing: 1px; }
+.plan-card.free .plan-name    { color: var(--text2); }
+.plan-card.starter .plan-name { color: var(--green); }
+.plan-card.pro .plan-name     { color: var(--violet); }
+.plan-card.vip .plan-name     { color: var(--or); }
+.plan-price-wrap { text-align: right; }
+.plan-price {
+  font-family: 'Orbitron', monospace; font-size: 24px; font-weight: 900; line-height: 1;
+}
+.plan-card.free .plan-price    { color: var(--text2); }
+.plan-card.starter .plan-price { color: var(--green); }
+.plan-card.pro .plan-price     { color: var(--violet); }
+.plan-card.vip .plan-price     { color: var(--or); }
+.plan-price-original {
+  font-family: 'Orbitron', monospace; font-size: 11px;
+  color: var(--text2); text-decoration: line-through;
+  display: none;
+}
+.plan-price-period { font-size: 9px; color: var(--text2); margin-top: 2px; }
+
+/* Features */
+.plan-feats { display: flex; flex-direction: column; gap: 7px; margin-bottom: 14px; }
+.pf-item { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text2); }
+.pf-check { color: var(--green); font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.pf-cross { color: var(--text2); opacity: .4; font-size: 12px; flex-shrink: 0; }
+
+/* Bouton subscribe */
+.btn-sub {
+  width: 100%; padding: 12px; border-radius: 12px; border: none;
+  font-family: 'Orbitron', monospace; font-size: 10px; font-weight: 700;
+  letter-spacing: 1px; cursor: pointer; transition: all .2s;
+  text-align: center; text-decoration: none; display: block;
+}
+.plan-card.free .btn-sub    { background: rgba(255,255,255,0.06); color: var(--text2); border: 1px solid var(--border); }
+.plan-card.starter .btn-sub { background: linear-gradient(135deg, #16a34a, var(--green)); color: #fff; }
+.plan-card.starter .btn-sub:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(74,222,128,0.25); }
+.plan-card.pro .btn-sub     { background: linear-gradient(135deg, var(--violet2), var(--violet)); color: #fff; }
+.plan-card.pro .btn-sub:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(167,139,250,0.3); }
+.plan-card.vip .btn-sub     { background: linear-gradient(135deg, var(--or), var(--or2)); color: #0a0800; }
+.plan-card.vip .btn-sub:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(212,175,55,0.3); }
+.btn-sub:disabled { opacity: .5; cursor: not-allowed; transform: none !important; }
+
+/* ── GARANTIES ── */
+.garanties { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+.gar-item {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 12px;
+}
+.gar-icon { font-size: 18px; flex-shrink: 0; }
+.gar-title { font-size: 10px; font-weight: 700; color: var(--text); margin-bottom: 1px; }
+.gar-sub { font-size: 8px; color: var(--text2); }
+
+/* Plan actuel badge */
+.current-plan-badge {
+  display: none; text-align: center; margin-bottom: 12px;
+  font-family: 'Orbitron', monospace; font-size: 8px; color: var(--violet);
+  background: var(--vdim); border: 1px solid var(--bv);
+  border-radius: 8px; padding: 6px;
+}
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<div class="sub-hero">
+  <div class="sub-hero-tag">ABONNEMENT · MORGAN BET PRO</div>
+  <div class="sub-hero-title">Choisissez votre niveau</div>
+  <div class="sub-hero-sub">Picks IA · Score Exact · Analyse Avancée · Telegram</div>
+</div>
+
+<!-- TOGGLE DEVISE -->
+<div class="currency-row">
+  <button class="cur-btn active" id="btn-eur" onclick="setCurrency('eur')">EUR €</button>
+  <button class="cur-btn" id="btn-xaf" onclick="setCurrency('xaf')">XAF FCFA</button>
+  <button class="cur-btn" id="btn-usd" onclick="setCurrency('usd')">USD $</button>
+</div>
+
+<!-- CODE PROMO -->
+<div class="promo-row">
+  <input class="promo-input" id="promo-input" placeholder="CODE PROMO (ex: MORGAN4)" maxlength="20">
+  <button class="btn-promo" onclick="applyPromo()">APPLIQUER</button>
+</div>
+<div class="promo-badge" id="promo-badge"></div>
+<div class="promo-err" id="promo-err"></div>
+
+<!-- PLAN ACTUEL -->
+<div class="current-plan-badge" id="current-plan-badge"></div>
+
+<!-- ── PLANS ── -->
+
+<!-- FREE -->
+<div class="plan-card free">
+  <div class="plan-header">
+    <div class="plan-name">FREE</div>
+    <div class="plan-price-wrap">
+      <div class="plan-price" id="price-free">0 €</div>
+      <div class="plan-price-period">Pour toujours</div>
+    </div>
+  </div>
+  <div class="plan-feats">
+    <div class="pf-item"><span class="pf-check">✓</span> 3 picks standards/jour</div>
+    <div class="pf-item"><span class="pf-check">✓</span> Pronostic du jour (limité)</div>
+    <div class="pf-item"><span class="pf-cross">✗</span> Score exact</div>
+    <div class="pf-item"><span class="pf-cross">✗</span> Value Bets</div>
+    <div class="pf-item"><span class="pf-cross">✗</span> Analyse IA Pro</div>
+  </div>
+  <button class="btn-sub" onclick="window.location.href='/app'">Continuer gratuitement</button>
+</div>
+
+<!-- STARTER -->
+<div class="plan-card starter">
+  <div class="plan-header">
+    <div class="plan-name">STARTER</div>
+    <div class="plan-price-wrap">
+      <div class="plan-price-original" id="price-starter-orig"></div>
+      <div class="plan-price" id="price-starter">9.99 €</div>
+      <div class="plan-price-period" id="period-starter">/mois</div>
+    </div>
+  </div>
+  <div class="plan-feats">
+    <div class="pf-item"><span class="pf-check">✓</span> 5 picks/jour</div>
+    <div class="pf-item"><span class="pf-check">✓</span> 3 Value Bets</div>
+    <div class="pf-item"><span class="pf-check">✓</span> Score exact</div>
+    <div class="pf-item"><span class="pf-check">✓</span> 1 combiné/jour</div>
+    <div class="pf-item"><span class="pf-cross">✗</span> Analyse IA Pro</div>
+  </div>
+  <button class="btn-sub" id="btn-starter" onclick="subscribe('starter')">COMMENCER STARTER →</button>
+</div>
+
+<!-- PRO -->
+<div class="plan-card pro">
+  <div class="plan-pop-badge">⭐ POPULAIRE</div>
+  <div class="plan-header">
+    <div class="plan-name">PRO</div>
+    <div class="plan-price-wrap">
+      <div class="plan-price-original" id="price-pro-orig"></div>
+      <div class="plan-price" id="price-pro">19.99 €</div>
+      <div class="plan-price-period" id="period-pro">/mois</div>
+    </div>
+  </div>
+  <div class="plan-feats">
+    <div class="pf-item"><span class="pf-check">✓</span> 7 picks/jour</div>
+    <div class="pf-item"><span class="pf-check">✓</span> Value Bets illimités</div>
+    <div class="pf-item"><span class="pf-check">✓</span> Score exact illimité</div>
+    <div class="pf-item"><span class="pf-check">✓</span> Analyse IA Pro LAB</div>
+    <div class="pf-item"><span class="pf-check">✓</span> Ticket Pro</div>
+    <div class="pf-item"><span class="pf-check">✓</span> 2 combinés/jour</div>
+  </div>
+  <button class="btn-sub" id="btn-pro" onclick="subscribe('pro')">COMMENCER PRO →</button>
+</div>
+
+<!-- VIP -->
+<div class="plan-card vip">
+  <div class="plan-pop-badge">💎 VIP</div>
+  <div class="plan-header">
+    <div class="plan-name">VIP</div>
+    <div class="plan-price-wrap">
+      <div class="plan-price-original" id="price-vip-orig"></div>
+      <div class="plan-price" id="price-vip">34.99 €</div>
+      <div class="plan-price-period" id="period-vip">/mois</div>
+    </div>
+  </div>
+  <div class="plan-feats">
+    <div class="pf-item"><span class="pf-check">✓</span> 9 picks/jour</div>
+    <div class="pf-item"><span class="pf-check">✓</span> Picks VIP exclusifs</div>
+    <div class="pf-item"><span class="pf-check">✓</span> Analyse IA dédiée</div>
+    <div class="pf-item"><span class="pf-check">✓</span> Combinés illimités</div>
+    <div class="pf-item"><span class="pf-check">✓</span> Support prioritaire</div>
+    <div class="pf-item"><span class="pf-check">✓</span> Accès nouveautés en avant-première</div>
+  </div>
+  <button class="btn-sub" id="btn-vip" onclick="subscribe('vip')">DEVENIR VIP →</button>
+</div>
+
+<!-- GARANTIES -->
+<div class="garanties">
+  <div class="gar-item"><div class="gar-icon">🔒</div><div><div class="gar-title">Paiement sécurisé</div><div class="gar-sub">Stripe SSL · Chiffré</div></div></div>
+  <div class="gar-item"><div class="gar-icon">🔄</div><div><div class="gar-title">Sans engagement</div><div class="gar-sub">Annulez quand vous voulez</div></div></div>
+  <div class="gar-item"><div class="gar-icon">⚡</div><div><div class="gar-title">Activation immédiate</div><div class="gar-sub">Accès instantané</div></div></div>
+  <div class="gar-item"><div class="gar-icon">🤖</div><div><div class="gar-title">IA Morgan</div><div class="gar-sub">9 modèles + Gemini</div></div></div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── Devises ──
+let currency = 'eur';
+let discount = 0; // % de réduction
+
+const PRICES = {
+  eur: { starter: 9.99,  pro: 19.99, vip: 34.99, sym: '€',    period: '/mois' },
+  xaf: { starter: 6500,  pro: 13100, vip: 22950, sym: ' FCFA', period: '/mois' },
+  usd: { starter: 10.99, pro: 21.99, vip: 37.99, sym: '$',     period: '/month' },
+};
+
+function setCurrency(c) {
+  currency = c;
+  ['eur','xaf','usd'].forEach(k => {
+    document.getElementById('btn-'+k)?.classList.toggle('active', k === c);
+  });
+  updatePrices();
+}
+
+function updatePrices() {
+  const p = PRICES[currency];
+  ['starter','pro','vip'].forEach(plan => {
+    const base = p[plan];
+    const discounted = discount > 0 ? base * (1 - discount / 100) : null;
+    const origEl = document.getElementById('price-'+plan+'-orig');
+    const priceEl = document.getElementById('price-'+plan);
+    const periodEl = document.getElementById('period-'+plan);
+    if (discounted !== null) {
+      origEl.textContent = formatPrice(base, p.sym);
+      origEl.style.display = 'block';
+      priceEl.textContent = formatPrice(discounted, p.sym);
+    } else {
+      origEl.style.display = 'none';
+      priceEl.textContent = formatPrice(base, p.sym);
+    }
+    if (periodEl) periodEl.textContent = p.period;
+  });
+}
+
+function formatPrice(val, sym) {
+  if (val >= 1000) return Math.round(val).toLocaleString('fr-FR') + ' ' + sym;
+  return val.toFixed(2) + ' ' + sym;
+}
+
+// ── Code promo ──
+const VALID_PROMOS = { 'MORGAN4': 10, 'VIP2026': 20 };
+
+function applyPromo() {
+  const code = document.getElementById('promo-input').value.trim().toUpperCase();
+  const badge = document.getElementById('promo-badge');
+  const err   = document.getElementById('promo-err');
+  badge.classList.remove('show');
+  err.classList.remove('show');
+
+  if (!code) {
+    err.textContent = 'Entre un code promo'; err.classList.add('show'); return;
+  }
+  if (VALID_PROMOS[code]) {
+    discount = VALID_PROMOS[code];
+    badge.textContent = `✓ Code ${code} appliqué · -${discount}% sur tous les plans`;
+    badge.classList.add('show');
+    updatePrices();
+  } else {
+    err.textContent = 'Code invalide ou expiré';
+    err.classList.add('show');
+    discount = 0;
+    updatePrices();
+  }
+}
+
+// ── Abonnement ──
+async function subscribe(plan) {
+  if (currency === 'xaf') {
+    showToast('💳 Mobile Money bientôt disponible — utilise EUR ou USD pour l\'instant', 'error');
+    return;
+  }
+  const btn = document.getElementById('btn-'+plan);
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ REDIRECTION...'; }
+  try {
+    const promoCode = document.getElementById('promo-input').value.trim().toUpperCase();
+    const r = await fetch('/api/stripe/create-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ plan, promo_code: promoCode || null })
+    });
+    const d = await r.json();
+    if (d.ok && d.url) {
+      window.location.href = d.url;
+    } else {
+      showToast(d.error || 'Erreur lors de la création du paiement', 'error');
+      if (btn) { btn.disabled = false; btn.textContent = 'COMMENCER '+plan.toUpperCase()+' →'; }
+    }
+  } catch(e) {
+    showToast('Erreur réseau', 'error');
+    if (btn) { btn.disabled = false; }
+  }
+}
+
+// ── Plan actuel ──
+async function checkCurrentPlan() {
+  try {
+    const r = await fetch('/api/auth/me', { credentials: 'include' });
+    const d = await r.json();
+    const plan = d.user?.subscription || 'free';
+    if (plan !== 'free') {
+      const el = document.getElementById('current-plan-badge');
+      el.textContent = `✓ Tu es déjà abonné au plan ${plan.toUpperCase()}`;
+      el.style.display = 'block';
+    }
+    // Désactiver le bouton du plan actuel
+    if (plan !== 'free') {
+      const btn = document.getElementById('btn-'+plan);
+      if (btn) { btn.textContent = '✓ PLAN ACTUEL'; btn.disabled = true; }
+    }
+  } catch(e) {}
+}
+
+// ── Retour Stripe ──
+const params = new URLSearchParams(window.location.search);
+if (params.get('payment') === 'success') {
+  const plan = params.get('plan') || '';
+  showToast('🎉 Paiement réussi ! Plan '+plan.toUpperCase()+' activé', 'success');
+  setTimeout(() => window.location.href = '/app', 3000);
+}
+if (params.get('payment') === 'cancel') {
+  showToast('Paiement annulé', 'error');
+}
+
+// Enter sur promo
+document.getElementById('promo-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') applyPromo();
+});
+
+checkCurrentPlan();
+</script>
+{% endblock %}

@@ -1,0 +1,540 @@
+{% extends "base.html" %}
+{% set active_page = 'menu' %}
+{% block title %}Morgan BetPro — Admin{% endblock %}
+
+{% block extra_css %}
+/* Vérif owner côté serveur — sécurité client side additionelle */
+
+/* ── TABS ADMIN ── */
+.admin-tabs {
+  display: flex; gap: 0;
+  background: rgba(10,0,21,0.97);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  margin: 0 -16px; padding: 0 16px;
+  position: sticky; top: var(--header-h); z-index: 50;
+  overflow-x: auto; scrollbar-width: none;
+}
+.admin-tabs::-webkit-scrollbar { display: none; }
+.at-btn {
+  padding: 12px 14px; flex-shrink: 0;
+  font-family: 'Orbitron', monospace; font-size: 8px; font-weight: 700;
+  letter-spacing: .5px; cursor: pointer;
+  color: var(--text2); background: transparent;
+  border-bottom: 2px solid transparent; transition: all .2s;
+  white-space: nowrap;
+}
+.at-btn.active { color: #fb7185; border-bottom-color: #fb7185; }
+.tab-line { height: 1px; background: linear-gradient(90deg, #fb7185, var(--or), var(--violet)); margin: 0 -16px 14px; }
+
+/* ── STAT CARDS ── */
+.admin-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.asc {
+  background: var(--surface); border: 1px solid var(--bv);
+  border-radius: 14px; padding: 14px; position: relative; overflow: hidden;
+}
+.asc::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+.asc.users::before   { background: var(--violet); }
+.asc.online::before  { background: var(--green); }
+.asc.revenue::before { background: var(--or); }
+.asc.picks::before   { background: #fb7185; }
+.asc-icon { font-size:20px; margin-bottom:7px; }
+.asc-val { font-family:'Orbitron',monospace; font-size:20px; font-weight:900; margin-bottom:4px; }
+.asc-lbl { font-size:9px; color:var(--text2); margin-bottom:3px; }
+.asc-trend { font-size:9px; font-weight:700; }
+.asc-trend.up { color:var(--green); }
+.asc-trend.down { color:var(--red); }
+
+/* Plans row */
+.plans-row { display:flex; gap:6px; margin-bottom:14px; }
+.plan-pill {
+  flex:1; text-align:center; border-radius:10px;
+  padding:10px 4px; border:1px solid rgba(255,255,255,0.06);
+  background:rgba(255,255,255,0.02);
+}
+.pp-val { font-family:'Orbitron',monospace; font-size:14px; font-weight:900; margin-bottom:4px; }
+.pp-lbl { font-size:8px; color:var(--text2); font-family:'Orbitron',monospace; }
+
+/* Picks stats */
+.pick-stat-row {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 0; border-bottom:1px solid var(--border);
+}
+.pick-stat-row:last-child { border-bottom:none; }
+.psr-rank { font-family:'Orbitron',monospace; font-size:11px; color:var(--text2); width:20px; flex-shrink:0; }
+.psr-info { flex:1; }
+.psr-market { font-size:12px; font-weight:700; color:var(--text); }
+.psr-views { font-size:9px; color:var(--text2); margin-top:2px; }
+.psr-bar { height:4px; background:rgba(255,255,255,0.06); border-radius:10px; overflow:hidden; margin-top:4px; }
+.psr-fill { height:100%; border-radius:10px; background:linear-gradient(90deg,var(--violet),var(--or)); }
+.psr-rate { font-family:'Orbitron',monospace; font-size:12px; font-weight:900; color:var(--green); flex-shrink:0; }
+
+/* ── USERS TABLE ── */
+.table-card {
+  background:var(--surface); border:1px solid var(--bv);
+  border-radius:14px; overflow:hidden; margin-bottom:12px;
+}
+.tc-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 14px; border-bottom:1px solid rgba(255,255,255,0.05);
+}
+.tc-title { font-family:'Orbitron',monospace; font-size:10px; font-weight:700; color:var(--text); }
+.tc-count { font-size:10px; color:var(--text2); }
+
+/* Filtre plan */
+.plan-filter { display:flex; gap:5px; padding:10px 14px; border-bottom:1px solid rgba(255,255,255,0.04); overflow-x:auto; scrollbar-width:none; }
+.plan-filter::-webkit-scrollbar { display:none; }
+.pf-btn { padding:4px 10px; border-radius:20px; font-family:'Orbitron',monospace; font-size:7px; font-weight:700; cursor:pointer; border:1px solid var(--border); background:transparent; color:var(--text2); flex-shrink:0; transition:all .2s; }
+.pf-btn.active { background:var(--vdim); border-color:var(--bv); color:var(--violet); }
+
+.user-row {
+  display:flex; align-items:center; gap:10px;
+  padding:11px 14px; border-bottom:1px solid rgba(255,255,255,0.04);
+  transition:background .15s;
+}
+.user-row:last-child { border-bottom:none; }
+.user-row:hover { background:rgba(255,255,255,0.02); }
+.ur-avatar {
+  width:30px; height:30px; border-radius:50%;
+  background:linear-gradient(135deg,var(--violet),var(--or));
+  display:flex; align-items:center; justify-content:center;
+  font-size:13px; flex-shrink:0;
+}
+.ur-info { flex:1; min-width:0; }
+.ur-name { font-size:12px; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ur-email { font-size:9px; color:var(--text2); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ur-plan { font-family:'Orbitron',monospace; font-size:7px; font-weight:700; padding:2px 7px; border-radius:8px; flex-shrink:0; }
+.plan-free    { background:rgba(255,255,255,0.05); color:var(--text2); border:1px solid var(--border2); }
+.plan-starter { background:rgba(74,222,128,0.08); color:var(--green); border:1px solid rgba(74,222,128,0.2); }
+.plan-pro     { background:var(--vdim); color:var(--violet); border:1px solid var(--bv); }
+.plan-vip     { background:var(--odim); color:var(--or); border:1px solid var(--bo); }
+.plan-owner   { background:rgba(251,113,133,0.1); color:#fb7185; border:1px solid rgba(251,113,133,0.25); }
+.ur-actions { display:flex; gap:5px; flex-shrink:0; }
+.btn-edit { width:26px; height:26px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:11px; cursor:pointer; background:var(--vdim); border:1px solid var(--bv); }
+.btn-ban  { width:26px; height:26px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:11px; cursor:pointer; background:rgba(248,113,113,0.08); border:1px solid rgba(248,113,113,0.2); }
+
+/* ── PICKS ADMIN ── */
+.pick-mgmt-row {
+  display:flex; align-items:center; gap:10px;
+  padding:11px 14px; border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.pick-mgmt-row:last-child { border-bottom:none; }
+.pmr-market { font-family:'Orbitron',monospace; font-size:8px; font-weight:700; color:var(--violet); background:var(--vdim); border:1px solid var(--bv); padding:2px 8px; border-radius:8px; flex-shrink:0; }
+.pmr-info { flex:1; min-width:0; }
+.pmr-match { font-size:12px; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.pmr-meta { font-size:9px; color:var(--text2); margin-top:2px; }
+.pmr-pct { font-family:'Orbitron',monospace; font-size:13px; font-weight:900; color:var(--or); flex-shrink:0; }
+.btn-trash { width:26px; height:26px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:11px; cursor:pointer; background:rgba(248,113,113,0.08); border:1px solid rgba(248,113,113,0.2); }
+.btn-add-pick { display:flex; align-items:center; gap:5px; background:rgba(251,113,133,0.1); border:1px solid rgba(251,113,133,0.25); color:#fb7185; padding:5px 12px; border-radius:8px; font-family:'Orbitron',monospace; font-size:8px; font-weight:700; cursor:pointer; }
+
+/* ── REVENUS ── */
+.revenue-hero {
+  background:linear-gradient(135deg,rgba(212,175,55,0.08),rgba(212,175,55,0.03));
+  border:1px solid rgba(212,175,55,0.25); border-radius:16px;
+  padding:18px; margin-bottom:12px; position:relative; overflow:hidden;
+}
+.revenue-hero::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--violet),var(--or),var(--violet)); }
+.rh-period { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.rh-month { font-family:'Orbitron',monospace; font-size:10px; font-weight:700; color:var(--or); }
+.rh-dates { font-size:9px; color:var(--text2); }
+.rh-total { font-family:'Orbitron',monospace; font-size:32px; font-weight:900; background:linear-gradient(90deg,var(--violet),var(--or)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:4px; }
+.rh-trend { font-size:10px; color:var(--green); font-weight:600; margin-bottom:14px; }
+.rh-breakdown { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+.rb-item { text-align:center; background:rgba(255,255,255,0.03); border-radius:10px; padding:10px 6px; border:1px solid rgba(255,255,255,0.05); }
+.rb-val { font-family:'Orbitron',monospace; font-size:13px; font-weight:900; margin-bottom:3px; }
+.rb-lbl { font-size:8px; color:var(--text2); }
+
+/* Promo codes */
+.promo-row {
+  display:flex; align-items:center; gap:10px;
+  padding:11px 14px; border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.promo-row:last-child { border-bottom:none; }
+.promo-code { font-family:'Orbitron',monospace; font-size:11px; font-weight:700; color:var(--or); flex-shrink:0; }
+.promo-info { flex:1; }
+.promo-usage { font-size:10px; color:var(--text2); }
+.promo-discount { font-family:'Orbitron',monospace; font-size:10px; font-weight:700; color:var(--green); flex-shrink:0; }
+
+/* Modal edit user */
+.modal-overlay { position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,0.75); backdrop-filter:blur(8px); display:none; align-items:flex-end; justify-content:center; }
+.modal-overlay.open { display:flex; }
+.modal-sheet { background:rgba(10,0,21,0.98); border:1px solid var(--bv); border-radius:20px 20px 0 0; padding:20px; width:100%; max-width:480px; }
+.modal-sheet::before { content:''; display:block; width:36px; height:4px; background:rgba(255,255,255,0.15); border-radius:2px; margin:0 auto 16px; }
+.modal-title { font-family:'Orbitron',monospace; font-size:10px; font-weight:700; color:var(--text); margin-bottom:14px; }
+.sel-plan { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
+.sp-btn { padding:8px 14px; border-radius:10px; font-family:'Orbitron',monospace; font-size:8px; font-weight:700; cursor:pointer; border:1px solid var(--border); background:transparent; color:var(--text2); transition:all .2s; }
+.sp-btn.active { background:var(--vdim); border-color:var(--bv); color:var(--violet); }
+.btn-confirm { width:100%; padding:12px; border-radius:12px; background:linear-gradient(135deg,var(--violet2),var(--or)); border:none; color:#fff; font-family:'Orbitron',monospace; font-size:10px; font-weight:700; cursor:pointer; margin-bottom:8px; }
+.btn-cancel { width:100%; padding:12px; border-radius:12px; background:rgba(255,255,255,0.04); border:1px solid var(--border); color:var(--text2); font-family:'Orbitron',monospace; font-size:10px; cursor:pointer; }
+{% endblock %}
+
+{% block content_class %}no-pad{% endblock %}
+
+{% block content %}
+{% if session.get('subscription') != 'owner' %}
+<div class="empty-state" style="padding:80px 20px">
+  <div class="empty-icon">🔒</div>
+  <div class="empty-title">Accès refusé</div>
+  <div class="empty-sub">Cette page est réservée à l'administrateur.</div>
+</div>
+{% else %}
+
+<!-- TABS -->
+<div class="admin-tabs">
+  <button class="at-btn active" onclick="switchTab('stats',this)">📈 STATS</button>
+  <button class="at-btn" onclick="switchTab('users',this)">👥 UTILISATEURS</button>
+  <button class="at-btn" onclick="switchTab('picks',this)">🎯 PICKS</button>
+  <button class="at-btn" onclick="switchTab('revenus',this)">💰 REVENUS</button>
+</div>
+
+<div style="padding:0 16px;padding-bottom:calc(var(--nav-h)+14px)">
+  <div class="tab-line"></div>
+
+  <!-- ═══════ STATS ═══════ -->
+  <div id="tab-stats">
+    <div class="admin-stats-grid">
+      <div class="asc users"><div class="asc-icon">👥</div><div class="asc-val text-violet" id="st-users">—</div><div class="asc-lbl">Utilisateurs inscrits</div><div class="asc-trend up" id="st-users-trend"></div></div>
+      <div class="asc online"><div class="asc-icon">🟢</div><div class="asc-val text-green" id="st-online">—</div><div class="asc-lbl">En ligne maintenant</div><div class="asc-trend up" id="st-online-h"></div></div>
+      <div class="asc revenue"><div class="asc-icon">💰</div><div class="asc-val text-or" id="st-revenue">—</div><div class="asc-lbl">Revenus ce mois</div><div class="asc-trend up">Calculé via Stripe</div></div>
+      <div class="asc picks"><div class="asc-icon">🎯</div><div class="asc-val" style="color:#fb7185" id="st-winrate">—</div><div class="asc-lbl">Taux réussite picks</div><div class="asc-trend up">7 derniers jours</div></div>
+    </div>
+
+    <div class="sec-label">📋 ABONNEMENTS ACTIFS</div>
+    <div class="plans-row" id="plans-row">
+      <div class="plan-pill"><div class="pp-val text-muted" id="pl-free">—</div><div class="pp-lbl">FREE</div></div>
+      <div class="plan-pill"><div class="pp-val text-green" id="pl-starter">—</div><div class="pp-lbl">STARTER</div></div>
+      <div class="plan-pill"><div class="pp-val text-violet" id="pl-pro">—</div><div class="pp-lbl">PRO</div></div>
+      <div class="plan-pill"><div class="pp-val text-or" id="pl-vip">—</div><div class="pp-lbl">VIP</div></div>
+    </div>
+
+    <div class="sec-label">🏆 PICKS LES PLUS CONSULTÉS</div>
+    <div class="table-card">
+      <div style="padding:12px 14px" id="top-picks-container">
+        <div class="loader"><div class="loader-ring"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ UTILISATEURS ═══════ -->
+  <div id="tab-users" style="display:none">
+    <div class="table-card">
+      <div class="tc-header">
+        <div class="tc-title">Utilisateurs</div>
+        <div class="tc-count" id="users-count">Chargement...</div>
+      </div>
+      <div class="plan-filter" id="plan-filter">
+        <button class="pf-btn active" onclick="filterUsers('',this)">TOUS</button>
+        <button class="pf-btn" onclick="filterUsers('free',this)">FREE</button>
+        <button class="pf-btn" onclick="filterUsers('starter',this)">STARTER</button>
+        <button class="pf-btn" onclick="filterUsers('pro',this)">PRO</button>
+        <button class="pf-btn" onclick="filterUsers('vip',this)">VIP</button>
+      </div>
+      <div id="users-list">
+        <div class="loader"><div class="loader-ring"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ PICKS ═══════ -->
+  <div id="tab-picks" style="display:none">
+    <div class="table-card">
+      <div class="tc-header">
+        <div class="tc-title">Picks du jour</div>
+        <button class="btn-add-pick" onclick="showAddPick()">➕ AJOUTER</button>
+      </div>
+      <div id="picks-admin-list">
+        <div class="loader"><div class="loader-ring"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ REVENUS ═══════ -->
+  <div id="tab-revenus" style="display:none">
+    <div class="revenue-hero">
+      <div class="rh-period">
+        <div class="rh-month" id="rev-month">—</div>
+        <div class="rh-dates" id="rev-dates">—</div>
+      </div>
+      <div class="rh-total" id="rev-total">—</div>
+      <div class="rh-trend" id="rev-trend"></div>
+      <div class="rh-breakdown">
+        <div class="rb-item"><div class="rb-val text-green" id="rev-starter">—</div><div class="rb-lbl">STARTER</div></div>
+        <div class="rb-item"><div class="rb-val text-violet" id="rev-pro">—</div><div class="rb-lbl">PRO</div></div>
+        <div class="rb-item"><div class="rb-val text-or" id="rev-vip">—</div><div class="rb-lbl">VIP</div></div>
+      </div>
+    </div>
+
+    <div class="sec-label">🎟️ CODES PROMO</div>
+    <div class="table-card">
+      <div class="tc-header">
+        <div class="tc-title">Codes actifs</div>
+        <button class="btn-add-pick" onclick="addPromo()">➕ CRÉER</button>
+      </div>
+      <div id="promo-list">
+        <div class="promo-row">
+          <div class="promo-code">MORGAN4</div>
+          <div class="promo-info"><div class="promo-usage">Utilisé 47 fois · Tous plans</div></div>
+          <div class="promo-discount">-10%</div>
+          <div class="btn-trash" onclick="deletePromo('MORGAN4')">🗑</div>
+        </div>
+        <div class="promo-row">
+          <div class="promo-code">VIP2026</div>
+          <div class="promo-info"><div class="promo-usage">Utilisé 12 fois · Tous plans</div></div>
+          <div class="promo-discount">-20%</div>
+          <div class="btn-trash" onclick="deletePromo('VIP2026')">🗑</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL EDIT USER -->
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal-sheet">
+    <div class="modal-title" id="modal-user-name">Modifier l'abonnement</div>
+    <div class="sec-label" style="margin-top:0">NOUVEAU PLAN</div>
+    <div class="sel-plan">
+      <button class="sp-btn active" onclick="selectPlan('free',this)">FREE</button>
+      <button class="sp-btn" onclick="selectPlan('starter',this)">STARTER</button>
+      <button class="sp-btn" onclick="selectPlan('pro',this)">PRO</button>
+      <button class="sp-btn" onclick="selectPlan('vip',this)">VIP</button>
+      <button class="sp-btn" onclick="selectPlan('owner',this)">OWNER</button>
+    </div>
+    <div class="field" style="margin-bottom:14px">
+      <label class="input-label">DATE EXPIRATION (optionnel)</label>
+      <input type="date" id="modal-expires" class="input">
+    </div>
+    <button class="btn-confirm" onclick="confirmEdit()">✓ CONFIRMER LE CHANGEMENT</button>
+    <button class="btn-cancel" onclick="closeModal()">Annuler</button>
+  </div>
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+{% if session.get('subscription') == 'owner' %}
+let allUsers = [];
+let currentUserId = null;
+let selectedPlan = 'free';
+const sym = '€';
+
+// ── Onglets ──
+function switchTab(tab, btn) {
+  document.querySelectorAll('.at-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  ['stats','users','picks','revenus'].forEach(t => {
+    const el = document.getElementById('tab-'+t);
+    if (el) el.style.display = t===tab?'block':'none';
+  });
+  if (tab==='users' && !allUsers.length) loadUsers();
+  if (tab==='picks') loadPicksAdmin();
+  if (tab==='revenus') loadRevenus();
+}
+
+// ── Stats ──
+async function loadStats() {
+  try {
+    const r = await fetch('/api/admin/stats', { credentials:'include' });
+    const d = await r.json();
+    document.getElementById('st-users').textContent   = d.total_users || 0;
+    document.getElementById('st-online').textContent  = d.active_now || 0;
+    document.getElementById('st-online-h').textContent= d.active_1h ? `${d.active_1h} cette heure` : '';
+    const plans = d.plans || {};
+    document.getElementById('pl-free').textContent    = plans.free || 0;
+    document.getElementById('pl-starter').textContent = plans.starter || 0;
+    document.getElementById('pl-pro').textContent     = plans.pro || 0;
+    document.getElementById('pl-vip').textContent     = plans.vip || 0;
+    // Revenus estimés
+    const rev = ((plans.starter||0)*9.99 + (plans.pro||0)*19.99 + (plans.vip||0)*34.99);
+    document.getElementById('st-revenue').textContent = rev.toFixed(0) + sym;
+  } catch(e) {}
+
+  // Top picks via bilan public
+  try {
+    const r2 = await fetch('/api/bilan-public?days=7');
+    const d2 = await r2.json();
+    const markets = (d2.markets||[]).slice(0,5);
+    if (markets.length) {
+      document.getElementById('top-picks-container').innerHTML = markets.map((m,i) => `
+        <div class="pick-stat-row">
+          <div class="psr-rank">${i+1}</div>
+          <div class="psr-info">
+            <div class="psr-market">${m.label||m.type}</div>
+            <div class="psr-views">${m.total} picks · ${m.won} gagnés</div>
+            <div class="psr-bar"><div class="psr-fill" style="width:${m.rate||0}%"></div></div>
+          </div>
+          <div class="psr-rate">${m.rate||0}%</div>
+        </div>`).join('');
+      document.getElementById('st-winrate').textContent = (markets[0]?.rate||0)+'%';
+    } else {
+      document.getElementById('top-picks-container').innerHTML = `<div class="empty-state" style="padding:20px"><div class="empty-icon">📊</div><div class="empty-title">Aucune donnée</div></div>`;
+    }
+  } catch(e) {}
+}
+
+// ── Utilisateurs ──
+async function loadUsers(planFilter='') {
+  document.getElementById('users-list').innerHTML = '<div class="loader"><div class="loader-ring"></div></div>';
+  try {
+    const url = planFilter ? `/api/admin/users?plan=${planFilter}` : '/api/admin/users';
+    const r = await fetch(url, { credentials:'include' });
+    const d = await r.json();
+    allUsers = d.users || [];
+    document.getElementById('users-count').textContent = allUsers.length + ' utilisateurs';
+    renderUsers(allUsers);
+  } catch(e) {
+    document.getElementById('users-list').innerHTML = `<div class="empty-state" style="padding:20px"><div class="empty-icon">⚠️</div><div class="empty-title">Erreur</div></div>`;
+  }
+}
+
+function filterUsers(plan, btn) {
+  document.querySelectorAll('#plan-filter .pf-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  loadUsers(plan);
+}
+
+function renderUsers(users) {
+  if (!users.length) {
+    document.getElementById('users-list').innerHTML = `<div class="empty-state" style="padding:20px"><div class="empty-icon">👥</div><div class="empty-title">Aucun utilisateur</div></div>`;
+    return;
+  }
+  document.getElementById('users-list').innerHTML = users.map(u => `
+    <div class="user-row">
+      <div class="ur-avatar">👤</div>
+      <div class="ur-info">
+        <div class="ur-name">${u.username||'—'}</div>
+        <div class="ur-email">${u.email||'—'}</div>
+      </div>
+      <div class="ur-plan plan-${u.subscription||'free'}">
+        ${u.subscription==='owner'?'👑 OWNER':u.subscription==='vip'?'💎 VIP':u.subscription==='pro'?'🔵 PRO':u.subscription==='starter'?'🟢 START':'FREE'}
+      </div>
+      <div class="ur-actions">
+        <div class="btn-edit" onclick="openEdit(${u.id},'${u.username}','${u.subscription||'free'}')">✏️</div>
+        ${u.subscription!=='owner'?`<div class="btn-ban" onclick="banUser(${u.id},'${u.username}')">🚫</div>`:''}
+      </div>
+    </div>`).join('');
+}
+
+// ── Edit user ──
+function openEdit(uid, username, plan) {
+  currentUserId = uid;
+  selectedPlan = plan;
+  document.getElementById('modal-user-name').textContent = `Modifier : ${username}`;
+  document.querySelectorAll('.sp-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.toLowerCase()===plan);
+  });
+  document.getElementById('modal-expires').value = '';
+  document.getElementById('modal-edit').classList.add('open');
+}
+
+function selectPlan(plan, btn) {
+  selectedPlan = plan;
+  document.querySelectorAll('.sp-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+async function confirmEdit() {
+  if (!currentUserId) return;
+  const expires = document.getElementById('modal-expires').value || null;
+  try {
+    const r = await fetch(`/api/admin/users/${currentUserId}/plan`, {
+      method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+      body: JSON.stringify({ plan: selectedPlan, expires_at: expires })
+    });
+    const d = await r.json();
+    if (d.ok) {
+      showToast(`✓ Plan ${selectedPlan.toUpperCase()} appliqué`, 'success');
+      closeModal();
+      loadUsers();
+    } else showToast(d.error||'Erreur','error');
+  } catch(e) { showToast('Erreur réseau','error'); }
+}
+
+function closeModal() {
+  document.getElementById('modal-edit').classList.remove('open');
+}
+
+async function banUser(uid, username) {
+  if (!confirm(`Bannir ${username} ? Son compte passera en FREE.`)) return;
+  try {
+    const r = await fetch(`/api/admin/users/${uid}/plan`, {
+      method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+      body: JSON.stringify({ plan:'free' })
+    });
+    const d = await r.json();
+    if (d.ok) { showToast(`✓ ${username} banni`, 'success'); loadUsers(); }
+    else showToast(d.error||'Erreur','error');
+  } catch(e) { showToast('Erreur réseau','error'); }
+}
+
+// ── Picks admin ──
+async function loadPicksAdmin() {
+  try {
+    const r = await fetch('/api/pronostic-du-jour', { credentials:'include' });
+    const d = await r.json();
+    const picks = (d.pronostics||[]).slice(0,20);
+    if (!picks.length) {
+      document.getElementById('picks-admin-list').innerHTML = `<div class="empty-state" style="padding:20px"><div class="empty-icon">🎯</div><div class="empty-title">Aucun pick aujourd'hui</div></div>`;
+      return;
+    }
+    document.getElementById('picks-admin-list').innerHTML = picks.map((p,i) => {
+      const market = (p.market_type||p.market||'').toUpperCase().slice(0,8);
+      return `
+        <div class="pick-mgmt-row">
+          <div class="pmr-market">${market||'PICK'}</div>
+          <div class="pmr-info">
+            <div class="pmr-match">${p.home||'?'} vs ${p.away||'?'}</div>
+            <div class="pmr-meta">${p.league||''} · ${p.time||''}</div>
+          </div>
+          <div class="pmr-pct">${p.conf||p.confidence||0}%</div>
+          <div class="ur-actions">
+            <div class="btn-edit">✏️</div>
+            <div class="btn-trash">🗑</div>
+          </div>
+        </div>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('picks-admin-list').innerHTML = `<div class="empty-state" style="padding:20px"><div class="empty-icon">⚠️</div><div class="empty-title">Erreur</div></div>`;
+  }
+}
+
+function showAddPick() { showToast('Fonctionnalité bientôt disponible', 'info'); }
+
+// ── Revenus ──
+async function loadRevenus() {
+  try {
+    const r = await fetch('/api/admin/stats', { credentials:'include' });
+    const d = await r.json();
+    const plans = d.plans || {};
+    const starter = (plans.starter||0) * 9.99;
+    const pro     = (plans.pro||0) * 19.99;
+    const vip     = (plans.vip||0) * 34.99;
+    const total   = starter + pro + vip;
+    const now = new Date();
+    document.getElementById('rev-month').textContent = now.toLocaleString('fr-FR',{month:'long',year:'numeric'}).toUpperCase();
+    document.getElementById('rev-dates').textContent = `01 — ${now.getDate()} ${now.toLocaleString('fr-FR',{month:'short'})}`;
+    document.getElementById('rev-total').textContent = total.toFixed(0) + sym;
+    document.getElementById('rev-trend').textContent = '↑ Basé sur les abonnements actifs';
+    document.getElementById('rev-starter').textContent = starter.toFixed(0)+sym;
+    document.getElementById('rev-pro').textContent     = pro.toFixed(0)+sym;
+    document.getElementById('rev-vip').textContent     = vip.toFixed(0)+sym;
+  } catch(e) {}
+}
+
+function addPromo() { showToast('Fonctionnalité bientôt disponible', 'info'); }
+function deletePromo(code) {
+  if (confirm(`Supprimer le code ${code} ?`)) showToast(`Code ${code} supprimé`, 'success');
+}
+
+// Fermer modal en cliquant overlay
+document.getElementById('modal-edit').addEventListener('click', function(e) {
+  if (e.target===this) closeModal();
+});
+
+loadStats();
+setInterval(loadStats, 30000);
+{% endif %}
+</script>
+{% endblock %}

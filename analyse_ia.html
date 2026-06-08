@@ -1,0 +1,536 @@
+{% extends "base.html" %}
+{% set active_page = 'lab' %}
+{% block title %}Morgan BetPro — Analyse IA{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-card{background:var(--surface);border:1px solid var(--bv);border-radius:14px;padding:14px;margin-bottom:12px}
+.form-inputs{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.form-field{flex:1}
+.form-label{font-family:'Orbitron',monospace;font-size:7px;letter-spacing:2px;color:var(--text2);margin-bottom:5px;display:block}
+.form-input{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--bv);border-radius:10px;padding:10px 12px;color:var(--text);font-size:13px;outline:none;transition:border-color .2s}
+.form-input:focus{border-color:rgba(167,139,250,0.5)}
+.form-input::placeholder{color:var(--text2)}
+.form-vs{font-family:'Orbitron',monospace;font-size:11px;color:var(--text2);font-weight:700;flex-shrink:0}
+.btn-analyse{width:100%;padding:13px;border-radius:12px;background:linear-gradient(135deg,#7c3aed,var(--or));border:none;color:#fff;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:all .2s}
+.btn-analyse:disabled{opacity:.5;cursor:not-allowed}
+
+.verdict{background:linear-gradient(135deg,rgba(167,139,250,0.07),rgba(212,175,55,0.04));border:1px solid rgba(167,139,250,0.2);border-radius:14px;padding:14px;margin-bottom:8px;position:relative;overflow:hidden}
+.verdict::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--violet),var(--or),var(--violet))}
+.v-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+.v-match{font-size:15px;font-weight:900;color:var(--text);line-height:1.2}
+.v-conf{font-family:'Orbitron',monospace;font-size:8px;font-weight:700;padding:4px 10px;border-radius:10px;white-space:nowrap;flex-shrink:0}
+.conf-haut{background:rgba(74,222,128,0.1);color:var(--green);border:1px solid rgba(74,222,128,0.2)}
+.conf-moyen{background:rgba(212,175,55,0.1);color:var(--or);border:1px solid var(--bo)}
+.conf-bas{background:rgba(248,113,113,0.1);color:var(--red);border:1px solid rgba(248,113,113,0.2)}
+.v-text{font-size:11px;color:var(--text2);line-height:1.6;margin-bottom:12px}
+.v-stats{display:flex;gap:0;background:rgba(255,255,255,0.03);border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.05);margin-bottom:8px}
+.vs-item{flex:1;text-align:center;padding:10px 4px;border-right:1px solid rgba(255,255,255,0.05)}
+.vs-item:last-child{border-right:none}
+.vs-val{font-family:'Orbitron',monospace;font-size:14px;font-weight:900;margin-bottom:3px}
+.vs-lbl{font-size:7px;color:var(--text2);font-family:'Orbitron',monospace}
+.v-formes{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.vf-box{background:rgba(255,255,255,0.02);border-radius:8px;padding:10px}
+.vf-title{font-family:'Orbitron',monospace;font-size:7px;color:var(--text2);letter-spacing:1px;margin-bottom:7px}
+.vf-dots{display:flex;gap:4px}
+.fd{width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700}
+.fd-v{background:rgba(74,222,128,0.15);color:var(--green);border:1px solid rgba(74,222,128,0.25)}
+.fd-n{background:rgba(255,255,255,0.06);color:var(--text2);border:1px solid rgba(255,255,255,0.1)}
+.fd-d{background:rgba(248,113,113,0.1);color:var(--red);border:1px solid rgba(248,113,113,0.2)}
+
+.pick{border-radius:14px;padding:14px;margin-bottom:8px;position:relative;overflow:hidden}
+.pick::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.pick.top{background:linear-gradient(135deg,rgba(74,222,128,0.06),rgba(74,222,128,0.02));border:1px solid rgba(74,222,128,0.2)}
+.pick.top::before{background:linear-gradient(90deg,var(--green),var(--or))}
+.pick.victoire{background:var(--surface);border:1px solid var(--bv)}
+.pick.victoire::before{background:linear-gradient(90deg,var(--violet),transparent)}
+.pick.buts{background:var(--surface);border:1px solid var(--bo)}
+.pick.buts::before{background:linear-gradient(90deg,var(--or),transparent)}
+.pick.score{background:rgba(96,165,250,0.04);border:1px solid rgba(96,165,250,0.18)}
+.pick.score::before{background:linear-gradient(90deg,var(--blue),transparent)}
+.pick.safe{background:rgba(74,222,128,0.04);border:1px solid rgba(74,222,128,0.18)}
+.pick.safe::before{background:linear-gradient(90deg,var(--green),transparent)}
+.pick.equilibre{background:var(--surface);border:1px solid var(--bo)}
+.pick.equilibre::before{background:linear-gradient(90deg,var(--or),transparent)}
+.pick.boost{background:rgba(248,113,113,0.04);border:1px solid rgba(248,113,113,0.18)}
+.pick.boost::before{background:linear-gradient(90deg,var(--red),transparent)}
+
+.pk-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.pk-type{font-family:'Orbitron',monospace;font-size:8px;font-weight:700;letter-spacing:1px;display:flex;align-items:center;gap:6px}
+.pk-badge{font-family:'Orbitron',monospace;font-size:7px;font-weight:700;padding:2px 8px;border-radius:8px}
+.badge-top{background:rgba(74,222,128,0.1);color:var(--green);border:1px solid rgba(74,222,128,0.25)}
+.pk-main{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.pk-title{font-size:14px;font-weight:800;color:var(--text);flex:1;padding-right:8px;line-height:1.3}
+.pk-pct{font-family:'Orbitron',monospace;font-size:24px;font-weight:900;flex-shrink:0}
+.pk-desc{font-size:11px;color:var(--text2);line-height:1.5;margin-bottom:10px}
+
+.signal{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;margin-bottom:10px}
+.signal.fort{background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.2)}
+.signal.moyen{background:rgba(212,175,55,0.06);border:1px solid var(--bo)}
+.signal.faible{background:rgba(248,113,113,0.06);border:1px solid rgba(248,113,113,0.2)}
+.signal-title{font-size:11px;font-weight:700}
+.signal.fort .signal-title{color:var(--green)}
+.signal.moyen .signal-title{color:var(--or)}
+.signal.faible .signal-title{color:var(--red)}
+.signal-sub{font-size:9px;color:var(--text2);margin-top:1px}
+
+.btn-ticket{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;font-family:'Orbitron',monospace;font-size:8px;font-weight:700;letter-spacing:.5px;cursor:pointer;border:none}
+.btn-ticket.g{background:rgba(74,222,128,0.1);color:var(--green);border:1px solid rgba(74,222,128,0.25)}
+.btn-ticket.v{background:var(--vdim);color:var(--violet);border:1px solid var(--bv)}
+.btn-ticket.o{background:var(--odim);color:var(--or);border:1px solid var(--bo)}
+.btn-ticket.b{background:rgba(96,165,250,0.08);color:var(--blue);border:1px solid rgba(96,165,250,0.2)}
+.btn-ticket.r{background:rgba(248,113,113,0.08);color:var(--red);border:1px solid rgba(248,113,113,0.2)}
+
+.scores-row{display:flex;gap:8px;margin-bottom:8px}
+.score-box{flex:1;border-radius:12px;padding:12px 6px;text-align:center}
+.score-box.first{background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.25)}
+.score-box.other{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06)}
+.score-val{font-family:'Orbitron',monospace;font-size:20px;font-weight:900;margin-bottom:4px}
+.score-box.first .score-val{color:var(--or)}
+.score-box.other .score-val{color:var(--text2)}
+.score-pct{font-size:9px;color:var(--text2)}
+
+.buteur-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.buteur-item:last-child{border-bottom:none}
+.buteur-pct{font-family:'Orbitron',monospace;font-size:18px;font-weight:900;width:48px}
+.b-p1{color:var(--green)} .b-p2{color:var(--or)} .b-p3{color:var(--violet)}
+.buteur-photo{width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,0.1)}
+.buteur-name{font-size:12px;font-weight:700;color:var(--text)}
+.buteur-sub{font-size:9px;color:var(--text2);margin-top:2px}
+
+.conseil-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cb{border-radius:12px;padding:12px}
+.cb-conseil{background:rgba(74,222,128,0.05);border:1px solid rgba(74,222,128,0.18)}
+.cb-risque{background:rgba(212,175,55,0.05);border:1px solid rgba(212,175,55,0.18)}
+.cb-title{font-family:'Orbitron',monospace;font-size:7px;font-weight:700;letter-spacing:1px;margin-bottom:7px}
+.cb-conseil .cb-title{color:var(--green)}
+.cb-risque .cb-title{color:var(--or)}
+.cb-text{font-size:10px;color:var(--text2);line-height:1.6}
+
+.rate-limit-box{background:rgba(248,113,113,0.06);border:1px solid rgba(248,113,113,0.2);border-radius:14px;padding:16px;text-align:center;margin-bottom:12px}
+.rl-icon{font-size:32px;margin-bottom:8px}
+.rl-title{font-family:'Orbitron',monospace;font-size:11px;color:var(--red);margin-bottom:6px}
+.rl-sub{font-size:11px;color:var(--text2)}
+.rl-countdown{font-family:'Orbitron',monospace;font-size:24px;font-weight:900;color:var(--or);margin:10px 0}
+
+.buts-list{margin-bottom:10px;display:flex;flex-direction:column;gap:5px}
+.but-row{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.03);border-radius:8px;padding:8px 10px;border:1px solid rgba(255,255,255,0.04)}
+.but-lbl{font-size:11px;color:var(--text)}
+.but-pct{font-family:'Orbitron',monospace;font-size:11px;font-weight:700}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-card">
+  <div class="form-inputs">
+    <div class="form-field">
+      <label class="form-label">ÉQUIPE DOMICILE</label>
+      <input class="form-input" id="input-home" placeholder="Ex: Arsenal">
+    </div>
+    <div class="form-vs">VS</div>
+    <div class="form-field">
+      <label class="form-label">ÉQUIPE EXTÉRIEURE</label>
+      <input class="form-input" id="input-away" placeholder="Ex: Man City">
+    </div>
+  </div>
+  <button class="btn-analyse" id="btn-analyse" onclick="launchAnalyse()">🤖 LANCER L'ANALYSE IA</button>
+</div>
+
+<div id="ia-loader" style="display:none">
+  <div class="loader">
+    <div class="loader-ring"></div>
+    <div class="loader-text" id="ia-loader-text">ANALYSE EN COURS...</div>
+  </div>
+</div>
+
+<div id="rate-limit-box" class="rate-limit-box" style="display:none">
+  <div class="rl-icon">⏳</div>
+  <div class="rl-title">IA TEMPORAIREMENT SURCHARGÉE</div>
+  <div class="rl-countdown" id="rl-countdown">30</div>
+  <div class="rl-sub">Relance automatique dans <span id="rl-sec">30</span> secondes</div>
+</div>
+
+<div id="ia-error" style="display:none">
+  <div class="empty-state">
+    <div class="empty-icon">⚠️</div>
+    <div class="empty-title" id="ia-error-msg">Erreur d'analyse</div>
+    <div class="empty-sub">Vérifie le nom des équipes et réessaie.</div>
+  </div>
+</div>
+
+<div id="ia-results" style="display:none"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const params = new URLSearchParams(window.location.search);
+if (params.get('home')) document.getElementById('input-home').value = decodeURIComponent(params.get('home'));
+if (params.get('away')) document.getElementById('input-away').value = decodeURIComponent(params.get('away'));
+if (params.get('home') && params.get('away')) setTimeout(launchAnalyse, 300);
+
+let analysisData = null;
+
+async function launchAnalyse() {
+  const home = document.getElementById('input-home').value.trim();
+  const away = document.getElementById('input-away').value.trim();
+  if (!home || !away) { showToast('Entre les deux équipes', 'error'); return; }
+
+  document.getElementById('btn-analyse').disabled = true;
+  document.getElementById('btn-analyse').textContent = '⏳ ANALYSE EN COURS...';
+  document.getElementById('ia-loader').style.display = 'flex';
+  document.getElementById('ia-loader-text').textContent = '🔍 Recherche des données...';
+  document.getElementById('ia-error').style.display = 'none';
+  document.getElementById('ia-results').style.display = 'none';
+  document.getElementById('rate-limit-box').style.display = 'none';
+
+  try {
+    document.getElementById('ia-loader-text').textContent = '📊 Calcul des statistiques...';
+    const r1 = await fetch('/api/analyze', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, credentials: 'include',
+      body: JSON.stringify({ home, away, league: 39 })
+    });
+    const d1 = await r1.json();
+    if (!d1.ok) throw new Error(d1.error || 'Erreur analyse');
+    analysisData = d1.data;
+
+    document.getElementById('ia-loader-text').textContent = '🤖 IA Morgan analyse...';
+    await loadConclusion(d1.data, home, away);
+  } catch(e) {
+    document.getElementById('ia-loader').style.display = 'none';
+    document.getElementById('ia-error').style.display = 'block';
+    document.getElementById('ia-error-msg').textContent = e.message || 'Erreur d\'analyse';
+    resetBtn();
+  }
+}
+
+function resetBtn() {
+  document.getElementById('btn-analyse').disabled = false;
+  document.getElementById('btn-analyse').textContent = '🤖 LANCER L\'ANALYSE IA';
+}
+
+async function loadConclusion(data, home, away) {
+  try {
+    const r2 = await fetch('/api/conclude', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, credentials: 'include',
+      body: JSON.stringify(data)
+    });
+    const text = await r2.text();
+    let d2;
+    try { d2 = JSON.parse(text); }
+    catch(e) {
+      const cleaned = text.replace(/[\x00-\x1F\x7F]/g,' ').replace(/,\s*}/g,'}').replace(/,\s*]/g,']');
+      try { d2 = JSON.parse(cleaned); } catch(e2) { d2 = { ok: true, conclusion: {} }; }
+    }
+    document.getElementById('ia-loader').style.display = 'none';
+    resetBtn();
+    if (!d2.ok) {
+      if (d2.rate_limited) { startCountdown(30, data, home, away); return; }
+      renderResults(data, {}, home, away);
+      return;
+    }
+    renderResults(data, d2.conclusion || {}, home, away);
+  } catch(e) {
+    document.getElementById('ia-loader').style.display = 'none';
+    document.getElementById('ia-error').style.display = 'block';
+    document.getElementById('ia-error-msg').textContent = e.message;
+    resetBtn();
+  }
+}
+
+function startCountdown(sec, data, home, away) {
+  document.getElementById('rate-limit-box').style.display = 'block';
+  let remaining = sec;
+  document.getElementById('rl-countdown').textContent = remaining;
+  document.getElementById('rl-sec').textContent = remaining;
+  const t = setInterval(() => {
+    remaining--;
+    document.getElementById('rl-countdown').textContent = remaining;
+    document.getElementById('rl-sec').textContent = remaining;
+    if (remaining <= 0) {
+      clearInterval(t);
+      document.getElementById('rate-limit-box').style.display = 'none';
+      document.getElementById('ia-loader').style.display = 'flex';
+      loadConclusion(data, home, away);
+    }
+  }, 1000);
+}
+
+function signalClass(pct) { return pct >= 65 ? 'fort' : pct >= 50 ? 'moyen' : 'faible'; }
+function signalLabel(pct) { return pct >= 65 ? 'SIGNAL FORT ✓' : pct >= 50 ? 'SIGNAL MOYEN ~' : 'SIGNAL FAIBLE ✗'; }
+
+function confLabel(c) {
+  const v = (c||'').toUpperCase();
+  if (v.includes('HAUT')||v.includes('HIGH')||v.includes('ÉLEVÉ')||v.includes('FORT')) return ['CONFIANCE : ÉLEVÉE','conf-haut'];
+  if (v.includes('BAS')||v.includes('LOW')||v.includes('FAIBLE')) return ['CONFIANCE : FAIBLE','conf-bas'];
+  return ['CONFIANCE : MOYENNE','conf-moyen'];
+}
+
+function formeDots(form) {
+  if (!form) return '';
+  return (Array.isArray(form) ? form : form.split('')).slice(0,5).map(r => {
+    const cls = r==='W'||r==='V'?'fd-v':r==='D'||r==='N'?'fd-n':'fd-d';
+    const lbl = r==='W'||r==='V'?'V':r==='D'||r==='N'?'N':'D';
+    return `<div class="fd ${cls}">${lbl}</div>`;
+  }).join('');
+}
+
+function renderResults(stats, conc, home, away) {
+  const p   = stats.adj_probs || stats.probs || {};
+  const v1  = parseFloat(p.home || p.v1 || 0);
+  const drw = parseFloat(p.draw || p.nul || 0);
+  const v2  = parseFloat(p.away || p.v2 || 0);
+  const gg  = parseFloat(stats.bts || 0);
+  const o15 = parseFloat(stats.bts_o15 || 0);
+  const o25 = parseFloat(stats.bts_o25 || 0);
+  const o35 = parseFloat(stats.bts_o35 || 0);
+
+  // Scores depuis top6_scores (données API) en priorité
+  const rawScores = stats.top6_scores || stats.top2_scores || [];
+  const scores_c = rawScores.slice(0,3).map(s => ({
+    h: s.h ?? '?', a: s.a ?? '?',
+    pct: typeof s.p === 'number' ? (s.p > 1 ? parseFloat(s.p).toFixed(1) : (s.p*100).toFixed(1)) : parseFloat(s.pct||0).toFixed(1)
+  }));
+
+  // Verdict depuis Groq
+  const verdict = conc.verdict_label || conc.verdict || `Analyse ${home} vs ${away}`;
+  const analyse_txt = conc.analyse || conc.analysis || '';
+  const confRaw = conc.confidence || conc.confiance || 'MOYEN';
+  const [confTxt, confCls] = confLabel(confRaw);
+  const conseil = conc.conseil || conc.advice || '';
+  const risques = conc.risques || conc.risks || '';
+
+  // Picks depuis Groq, fallback depuis adj_markets si vide
+  const groqPicks = (conc.picks || []);
+  const mkts = stats.adj_markets || stats.markets || {};
+  const fallbackPicks = [
+    { label: 'Over 1.5 buts', pct: parseFloat(stats.bts_o15||0), reason: 'Statistiques des buts marqués', is_top: false },
+    { label: 'Over 2.5 buts', pct: parseFloat(stats.bts_o25||0), reason: 'Statistiques des buts' },
+    { label: 'GG - Les deux marquent', pct: parseFloat(stats.bts||0), reason: 'Statistiques BTS' },
+    { label: 'Victoire Domicile', pct: parseFloat((stats.probs||{}).home||0), reason: 'Probabilités modèles' },
+    { label: 'Victoire Extérieur', pct: parseFloat((stats.probs||{}).away||0), reason: 'Probabilités modèles' },
+    { label: 'Under 2.5 buts', pct: parseFloat(mkts['u2.5']||0), reason: 'Statistiques défensives' },
+  ].filter(p => p.pct > 0).sort((a,b) => b.pct - a.pct);
+  if (fallbackPicks.length) fallbackPicks[0].is_top = true;
+  const picks = (groqPicks.length ? groqPicks : fallbackPicks).sort((a,b) => (parseFloat(b.pct)||0)-(parseFloat(a.pct)||0));
+  const topPick   = picks.find(p => p.is_top) || picks[0] || null;
+  const victPick  = picks.find(p => /(victoire|win|1x2|domicile|extér)/i.test(p.label||''));
+  const butsPick  = picks.find(p => /(over|buts|gg|btts)/i.test(p.label||''));
+  const scorePick = picks.find(p => /(score|exact)/i.test(p.label||''));
+  const safePick  = picks.find(p => /safe/i.test(p.label||''));
+  const equilPick = picks.find(p => /(équil|equilib|balanced)/i.test(p.label||''));
+  const boostPick = picks.find(p => /(boost|risq|risky)/i.test(p.label||''));
+
+  const hForm = stats.home_team?.form || stats.home_form || '';
+  const aForm = stats.away_team?.form || stats.away_form || '';
+
+  let html = `
+    <div class="verdict">
+      <div class="v-header">
+        <div class="v-match">${home} vs ${away}</div>
+        <span class="v-conf ${confCls}">${confTxt}</span>
+      </div>
+      ${analyse_txt ? `<div class="v-text">${analyse_txt}</div>` : verdict !== `Analyse ${home} vs ${away}` ? `<div class="v-text">${verdict}</div>` : ''}
+      <div class="v-stats" style="margin-bottom:8px">
+        <div class="vs-item"><div class="vs-val" style="color:var(--green)">${v1.toFixed(1)}%</div><div class="vs-lbl">DOMICILE</div></div>
+        <div class="vs-item"><div class="vs-val" style="color:var(--text2)">${drw.toFixed(1)}%</div><div class="vs-lbl">NUL</div></div>
+        <div class="vs-item"><div class="vs-val" style="color:var(--or)">${v2.toFixed(1)}%</div><div class="vs-lbl">EXTÉRIEUR</div></div>
+      </div>
+      <div class="v-stats">
+        <div class="vs-item"><div class="vs-val" style="color:var(--green)">${o15.toFixed(1)}%</div><div class="vs-lbl">OVER 1.5</div></div>
+        <div class="vs-item"><div class="vs-val" style="color:var(--or)">${o25.toFixed(1)}%</div><div class="vs-lbl">OVER 2.5</div></div>
+        <div class="vs-item"><div class="vs-val" style="color:var(--violet)">${o35.toFixed(1)}%</div><div class="vs-lbl">OVER 3.5</div></div>
+        <div class="vs-item"><div class="vs-val" style="color:var(--green)">${gg.toFixed(1)}%</div><div class="vs-lbl">GG</div></div>
+      </div>
+      ${hForm || aForm ? `<div class="v-formes" style="margin-top:10px">
+        <div class="vf-box"><div class="vf-title">${home.split(' ')[0].toUpperCase()} — FORME</div><div class="vf-dots">${formeDots(hForm)}</div></div>
+        <div class="vf-box"><div class="vf-title">${away.split(' ')[0].toUpperCase()} — FORME</div><div class="vf-dots">${formeDots(aForm)}</div></div>
+      </div>` : ''}
+    </div>
+
+    ${topPick ? buildPickCard(topPick, 'top', 'g', '⭐ MEILLEUR PICK', 'badge-top', 'TOP') : ''}
+    ${victPick && victPick !== topPick ? buildPickCard(victPick, 'victoire', 'v', '🏆 VICTOIRE') : ''}
+    ${butsPick && butsPick !== topPick ? buildPickCard(butsPick, 'buts', 'o', '⚽ BUTS', '', '', true, o15, o25, gg) : ''}
+    ${scorePick && scorePick !== topPick ? buildPickCard(scorePick, 'score', 'b', '🎯 SCORE EXACT') : ''}
+    ${safePick ? buildPickCard(safePick, 'safe', 'g', '🛡️ COMBINÉ SAFE') : ''}
+    ${equilPick ? buildPickCard(equilPick, 'equilibre', 'o', '⚖️ COMBINÉ ÉQUILIBRÉ') : ''}
+    ${boostPick ? buildPickCard(boostPick, 'boost', 'r', '🚀 COMBINÉ BOOST') : ''}
+  `;
+
+  // BLESSURES / SUSPENSIONS
+  const inj_h = stats.injuries_home || [];
+  const inj_a = stats.injuries_away || [];
+  if (inj_h.length || inj_a.length) {
+    html += `<div class="sec-label">🏥 BLESSÉS / SUSPENDUS</div><div class="card" style="padding:12px 16px">`;
+    [...inj_h.map(i=>({...i,side:'home'})),...inj_a.map(i=>({...i,side:'away'}))].slice(0,6).forEach(inj => {
+      const sus = inj.type && inj.type.includes('Suspend');
+      html += `<div class="buteur-item">
+        <div style="font-size:18px;flex-shrink:0">${sus?'🟥':'🚑'}</div>
+        <div>
+          <div class="buteur-name">${inj.name}</div>
+          <div class="buteur-sub" style="color:${inj.side==='home'?'var(--violet)':'var(--or)'}">${inj.team} · ${inj.reason||inj.type||'Indisponible'}</div>
+        </div>
+        <div style="margin-left:auto;font-family:'Orbitron',monospace;font-size:8px;padding:3px 8px;border-radius:6px;background:${sus?'rgba(248,113,113,0.1)':'rgba(212,175,55,0.1)'};color:${sus?'var(--red)':'var(--or)'}">${sus?'SUSPENDU':'BLESSÉ'}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // ELO + MÉTÉO
+  const elo_h = stats.elo_home;
+  const elo_a = stats.elo_away;
+  const weather = stats.weather;
+  if (elo_h || elo_a || weather) {
+    html += `<div class="sec-label">📡 ELO & MÉTÉO</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">`;
+    // ELO
+    html += `<div class="card" style="padding:12px">`;
+    if (elo_h || elo_a) {
+      const ep = stats.elo_probs || {};
+      html += `<div style="font-family:'Orbitron',monospace;font-size:8px;color:var(--text2);letter-spacing:2px;margin-bottom:10px">ELO RATING</div>`;
+      html += `<div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-size:11px;font-weight:700;color:var(--text)">${home}</span><span style="font-family:'Orbitron',monospace;font-size:15px;font-weight:900;color:var(--violet)">${elo_h?.elo||'—'}</span></div>`;
+      html += `<div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-size:11px;font-weight:700;color:var(--text)">${away}</span><span style="font-family:'Orbitron',monospace;font-size:15px;font-weight:900;color:var(--or)">${elo_a?.elo||'—'}</span></div>`;
+      if (ep.home) html += `<div style="font-size:9px;color:var(--text2);text-align:center;padding-top:6px;border-top:1px solid var(--border)">ELO: ${home} ${ep.home.toFixed(0)}% · ${away} ${ep.away.toFixed(0)}%</div>`;
+    } else {
+      html += `<div style="font-size:11px;color:var(--text2)">ELO non disponible</div>`;
+    }
+    html += `</div>`;
+    // MÉTÉO
+    html += `<div class="card" style="padding:12px">`;
+    if (weather) {
+      html += `<div style="font-family:'Orbitron',monospace;font-size:8px;color:var(--text2);letter-spacing:2px;margin-bottom:8px">MÉTÉO</div>`;
+      html += `<div style="text-align:center"><div style="font-size:24px">${weather.icon||'🌤️'}</div><div style="font-family:'Orbitron',monospace;font-size:16px;font-weight:900;color:var(--or)">${weather.temp_c||'?'}°C</div><div style="font-size:10px;color:var(--text2)">${weather.description||''}</div></div>`;
+      if (weather.wind_kph) html += `<div style="display:flex;justify-content:space-between;font-size:10px;margin-top:8px"><span style="color:var(--text2)">Vent</span><span>${weather.wind_kph} km/h</span></div>`;
+      if (weather.goals_mod && weather.goals_mod !== 1) html += `<div style="font-size:9px;color:var(--or);text-align:center;margin-top:6px">Impact buts: ${weather.goals_mod>1?'+':''}${Math.round((weather.goals_mod-1)*100)}%</div>`;
+    } else {
+      html += `<div style="font-size:11px;color:var(--text2)">Météo non disponible</div>`;
+    }
+    html += `</div></div>`;
+  }
+
+  // API PREDICTIONS
+  const ap = stats.api_predictions;
+  if (ap) {
+    const pct = ap.percent || {};
+    html += `<div class="sec-label">🔮 PRÉDICTION API FOOTBALL</div>`;
+    html += `<div class="card" style="padding:14px;margin-bottom:12px">`;
+    html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">`;
+    html += `<div><div style="font-size:13px;font-weight:800;color:var(--text)">Vainqueur prédit</div><div style="font-size:11px;color:var(--violet);margin-top:2px">${ap.winner||'Inconnu'}</div></div>`;
+    html += `<div style="font-family:'Orbitron',monospace;font-size:8px;color:var(--or);background:rgba(212,175,55,0.1);border:1px solid var(--bo);padding:4px 10px;border-radius:8px">${ap.advice||''}</div></div>`;
+    html += `<div style="display:flex;gap:8px">`;
+    html += `<div style="flex:1;text-align:center;background:rgba(167,139,250,0.08);border-radius:8px;padding:8px"><div style="font-family:'Orbitron',monospace;font-size:16px;font-weight:900;color:var(--violet)">${pct.home||'?'}%</div><div style="font-size:9px;color:var(--text2)">Domicile</div></div>`;
+    html += `<div style="flex:1;text-align:center;background:rgba(255,255,255,0.04);border-radius:8px;padding:8px"><div style="font-family:'Orbitron',monospace;font-size:16px;font-weight:900;color:var(--text2)">${pct.draw||'?'}%</div><div style="font-size:9px;color:var(--text2)">Nul</div></div>`;
+    html += `<div style="flex:1;text-align:center;background:rgba(212,175,55,0.08);border-radius:8px;padding:8px"><div style="font-family:'Orbitron',monospace;font-size:16px;font-weight:900;color:var(--or)">${pct.away||'?'}%</div><div style="font-size:9px;color:var(--text2)">Extérieur</div></div>`;
+    html += `</div></div>`;
+  }
+
+  // Buteurs depuis scorer_probs API (données saison actuelle - pas Groq)
+  const scorers = stats.scorer_probs?.length ? stats.scorer_probs : (stats.h_scorers||[]).concat(stats.a_scorers||[]);
+  // Passeurs depuis h_assists + a_assists API (données réelles)
+  const assisters = (stats.h_assists||[]).concat(stats.a_assists||[]).slice(0,4);
+  if (scorers.length) {
+    const colors = ['b-p1','b-p2','b-p3'];
+    html += `<div class="sec-label">⚽ BUTEURS PROBABLES</div><div class="card" style="padding:12px 16px">`;
+    scorers.slice(0,5).forEach((b,i) => {
+      const nm    = b.name || '?';
+      const team  = b.team || '';
+      const goals = b.goals_season ?? b.goals ?? 0;
+      const pct   = Math.round(b.probability ?? b.prob ?? b.pct ?? 0);
+      const photo = b.photo ? `<img src="${b.photo}" class="buteur-photo" onerror="this.style.display='none'">` : '';
+      html += `<div class="buteur-item">
+        <div class="buteur-pct ${colors[i]||'b-p3'}">${pct}%</div>
+        ${photo}
+        <div><div class="buteur-name">${nm}</div><div class="buteur-sub">${team}${goals ? ' · ' + goals + ' buts' : ''}</div></div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // Passeurs probables depuis Groq
+  if (assisters.length) {
+    const colors = ['b-p1','b-p2','b-p3'];
+    html += `<div class="sec-label">🎯 PASSEURS PROBABLES</div><div class="card" style="padding:12px 16px">`;
+    assisters.slice(0,3).forEach((b,i) => {
+      const nm    = b.name || '?';
+      const team  = b.team || '';
+      const ast   = b.assists_season ?? b.assists ?? 0;
+      const pct   = Math.round(b.probability ?? b.prob ?? b.pct ?? 0);
+      const photo = b.photo ? `<img src="${b.photo}" class="buteur-photo" onerror="this.style.display='none'">` : '';
+      html += `<div class="buteur-item">
+        <div class="buteur-pct ${colors[i]||'b-p3'}">${pct}%</div>
+        ${photo}
+        <div><div class="buteur-name">${nm}</div><div class="buteur-sub">${team}${ast ? ' · ' + ast + ' passes' : ''}</div></div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // Scores probables
+  if (scores_c.length) {
+    html += `<div class="sec-label">📊 SCORES PROBABLES</div><div class="scores-row">`;
+    scores_c.forEach((s,i) => {
+      html += `<div class="score-box ${i===0?'first':'other'}"><div class="score-val">${s.h}-${s.a}</div><div class="score-pct">${s.pct}%</div></div>`;
+    });
+    html += `</div>`;
+  }
+
+  // Conseil + Risques
+  if (conseil || risques) {
+    html += `<div class="sec-label">💡 CONSEIL & RISQUES</div><div class="conseil-grid">
+      ${conseil?`<div class="cb cb-conseil"><div class="cb-title">💰 CONSEIL DE MISE</div><div class="cb-text">${conseil}</div></div>`:''}
+      ${risques?`<div class="cb cb-risque"><div class="cb-title">⚠️ RISQUES</div><div class="cb-text">${risques}</div></div>`:''}
+    </div>`;
+  }
+
+  document.getElementById('ia-results').innerHTML = html;
+  document.getElementById('ia-results').style.display = 'block';
+  document.getElementById('ia-results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function buildPickCard(pick, cls, btnCls, typeLabel, badgeCls='', badgeTxt='', showButs=false, o15=0, o25=0, gg=0) {
+  const label = pick.label || pick.pick || '?';
+  const pct   = parseFloat(pick.pct || pick.confidence || pick.prob || 0);
+  const desc  = pick.reason || pick.description || pick.texte || '';
+  const signal = signalClass(pct);
+  const sLbl   = signalLabel(pct);
+  const pctColors = { g:'var(--green)', v:'var(--violet)', o:'var(--or)', b:'var(--blue)', r:'var(--red)' };
+  const sources = pick.sources || [];
+
+  return `<div class="pick ${cls}">
+    <div class="pk-top">
+      <div class="pk-type" style="color:${pctColors[btnCls]}">${typeLabel}</div>
+      ${badgeTxt?`<div class="pk-badge ${badgeCls}">${badgeTxt}</div>`:''}
+    </div>
+    <div class="pk-main">
+      <div class="pk-title">${label}</div>
+      <div class="pk-pct" style="color:${pctColors[btnCls]}">${pct}%</div>
+    </div>
+    ${desc?`<div class="pk-desc">${desc}</div>`:''}
+    ${showButs && (o15||o25||gg) ? `<div class="buts-list">
+      ${o15?`<div class="but-row"><span class="but-lbl">Over 1.5 buts</span><span class="but-pct" style="color:var(--green)">${o15.toFixed(1)}%</span></div>`:''}
+      ${o25?`<div class="but-row"><span class="but-lbl">Over 2.5 buts</span><span class="but-pct" style="color:var(--or)">${o25.toFixed(1)}%</span></div>`:''}
+      ${gg?`<div class="but-row"><span class="but-lbl">Les deux équipes marquent</span><span class="but-pct" style="color:var(--or)">${gg.toFixed(1)}%</span></div>`:''}
+    </div>` : ''}
+    ${sources.length ? `<div class="sources" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:10px;padding:10px;margin-bottom:10px">
+      <div style="font-family:'Orbitron',monospace;font-size:7px;color:var(--text2);letter-spacing:2px;margin-bottom:8px">SOURCES DU CALCUL</div>
+      ${sources.slice(0,3).map(s => `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <div style="flex:1;font-size:10px;color:var(--text2)">${s.label||s.source||s}</div>
+        <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--${parseFloat(s.pct||0)>=60?'green':parseFloat(s.pct||0)>=40?'or':'red'})">${s.pct||''}%</div>
+      </div>`).join('')}
+    </div>` : `<div class="signal ${signal}">
+      <div><div class="signal-title">${sLbl}</div><div class="signal-sub">Calculé par l'IA Morgan sur 9 modèles</div></div>
+    </div>`}
+    <button class="btn-ticket ${btnCls}" onclick="addToTicket('${encodeURIComponent(label)}','${pct}')">🎟️ + TICKET PRO</button>
+  </div>`;
+}
+
+function addToTicket(label, pct) {
+  const home = document.getElementById('input-home').value.trim();
+  const away = document.getElementById('input-away').value.trim();
+  const ticket = JSON.parse(localStorage.getItem('mbp_ticket_picks') || '[]');
+  ticket.push({ home, away, label: decodeURIComponent(label), pct, added_at: new Date().toISOString() });
+  localStorage.setItem('mbp_ticket_picks', JSON.stringify(ticket));
+  showToast('✓ Ajouté au Ticket Pro', 'success');
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Enter') launchAnalyse(); });
+</script>
+{% endblock %}

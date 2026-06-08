@@ -1,0 +1,363 @@
+{% extends "base.html" %}
+{% set active_page = 'bankroll' %}
+{% block title %}Morgan BetPro — Bankroll{% endblock %}
+
+{% block extra_css %}
+<style>
+.capital-card{background:linear-gradient(135deg,rgba(167,139,250,0.08),rgba(212,175,55,0.05));border:1px solid rgba(167,139,250,0.2);border-radius:16px;padding:20px;margin-bottom:14px;position:relative;overflow:hidden}
+.capital-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--violet),var(--or),var(--violet))}
+.capital-label{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:3px;color:var(--text2);margin-bottom:8px}
+.capital-val{font-family:'Orbitron',monospace;font-size:36px;font-weight:900;background:linear-gradient(90deg,#fff,var(--or));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:16px}
+.capital-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.cs-item{text-align:center;background:rgba(255,255,255,0.03);border-radius:10px;padding:10px 6px;border:1px solid rgba(255,255,255,0.05)}
+.cs-val{font-family:'Orbitron',monospace;font-size:14px;font-weight:900;margin-bottom:4px}
+.cs-val.green{color:var(--green,#4ade80)}
+.cs-val.violet{color:var(--violet,#a78bfa)}
+.cs-val.or{color:var(--or,#d4af37)}
+.cs-lbl{font-size:8px;color:var(--text2);font-family:'Orbitron',monospace;letter-spacing:.3px;line-height:1.3}
+
+.graph-card{background:rgba(255,255,255,0.03);border:1px solid rgba(139,92,246,0.12);border-radius:16px;padding:16px;margin-bottom:14px}
+.graph-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.graph-title{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--text)}
+.graph-filters{display:flex;gap:6px}
+.gf-btn{padding:4px 10px;border-radius:8px;font-family:'Orbitron',monospace;font-size:7px;font-weight:700;cursor:pointer;border:1px solid rgba(139,92,246,0.12);background:transparent;color:var(--text2);transition:all .2s}
+.gf-btn.active{background:rgba(167,139,250,0.10);border-color:rgba(167,139,250,0.4);color:var(--violet,#a78bfa)}
+.graph-wrap{position:relative;height:120px;width:100%}
+.graph-wrap svg{width:100%;height:100%}
+.graph-labels{display:flex;justify-content:space-between;margin-top:8px;padding:0 4px}
+.graph-lbl{font-size:9px;color:var(--text2);font-family:'Orbitron',monospace}
+
+.objectif-card{background:rgba(255,255,255,0.03);border:1px solid rgba(212,175,55,0.15);border-radius:16px;padding:16px;margin-bottom:14px}
+.obj-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.obj-title{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--or,#d4af37)}
+.obj-edit{font-size:11px;color:var(--violet,#a78bfa);cursor:pointer;font-weight:600}
+.obj-amounts{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.obj-current{font-family:'Orbitron',monospace;font-size:18px;font-weight:900;color:var(--violet,#a78bfa)}
+.obj-target{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;color:var(--or,#d4af37)}
+.progress-bar{height:10px;background:rgba(255,255,255,0.06);border-radius:20px;overflow:hidden;margin-bottom:8px}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--violet,#a78bfa),var(--or,#d4af37));border-radius:20px;transition:width .5s ease}
+.obj-footer{display:flex;align-items:center;justify-content:space-between}
+.obj-pct{font-family:'Orbitron',monospace;font-size:12px;font-weight:900;color:var(--or,#d4af37)}
+.obj-remain{font-size:10px;color:var(--text2)}
+
+.conseil-card{background:linear-gradient(135deg,rgba(74,222,128,0.06),rgba(74,222,128,0.02));border:1px solid rgba(74,222,128,0.2);border-radius:16px;padding:16px;margin-bottom:14px}
+.conseil-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.conseil-icon{font-size:24px;flex-shrink:0}
+.conseil-title{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:#4ade80}
+.conseil-sub{font-size:10px;color:var(--text2);margin-top:2px}
+.mise-suggestion{display:flex;align-items:center;justify-content:space-between;background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.15);border-radius:12px;padding:12px 14px;margin-bottom:10px}
+.ms-label{font-size:12px;color:var(--text);font-weight:600}
+.ms-val{font-family:'Orbitron',monospace;font-size:20px;font-weight:900;color:#4ade80}
+.mise-levels{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.ml-item{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:10px 8px;text-align:center}
+.ml-pct{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;margin-bottom:4px}
+.ml-val{font-size:12px;font-weight:800;margin-bottom:3px}
+.ml-lbl{font-size:8px;color:var(--text2);line-height:1.3}
+.ml-item.safe .ml-pct,.ml-item.safe .ml-val{color:#4ade80}
+.ml-item.medium .ml-pct,.ml-item.medium .ml-val{color:var(--or,#d4af37)}
+.ml-item.risky .ml-pct,.ml-item.risky .ml-val{color:#f87171}
+
+.capital-form{margin-top:14px;display:flex;gap:8px;align-items:center}
+.capital-input{flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(167,139,250,0.3);border-radius:10px;padding:10px 14px;color:#fff;font-family:'Orbitron',monospace;font-size:14px;outline:none}
+.capital-input:focus{border-color:var(--violet,#a78bfa)}
+.btn-save{background:linear-gradient(90deg,var(--violet,#a78bfa),var(--or,#d4af37));border:none;border-radius:10px;padding:10px 16px;color:#0a0015;font-family:'Orbitron',monospace;font-size:9px;font-weight:900;cursor:pointer;letter-spacing:1px;white-space:nowrap}
+</style>
+{% endblock %}
+
+{% block content_class %}no-pad{% endblock %}
+
+{% block content %}
+<div style="padding:14px 16px;padding-bottom:calc(var(--nav-h) + 80px);overflow-y:auto;flex:1;">
+
+  <!-- CAPITAL -->
+  <div class="capital-card">
+    <div class="capital-label">CAPITAL ACTUEL</div>
+    <div class="capital-val" id="capital-val">--</div>
+    <div class="capital-stats">
+      <div class="cs-item">
+        <div class="cs-val green" id="stat-profit">--</div>
+        <div class="cs-lbl">PROFIT CE MOIS</div>
+      </div>
+      <div class="cs-item">
+        <div class="cs-val violet" id="stat-pending">--</div>
+        <div class="cs-lbl">PARIS EN COURS</div>
+      </div>
+      <div class="cs-item">
+        <div class="cs-val or" id="stat-roi">--</div>
+        <div class="cs-lbl">ROI</div>
+      </div>
+    </div>
+    <div class="capital-form">
+      <input class="capital-input" type="number" id="capital-input" placeholder="Définir capital (ex: 500)" min="10">
+      <button class="btn-save" onclick="saveCapital()">SAUVER</button>
+    </div>
+  </div>
+
+  <!-- GRAPHIQUE -->
+  <div class="graph-card">
+    <div class="graph-header">
+      <div class="graph-title">📈 ÉVOLUTION</div>
+      <div class="graph-filters">
+        <button class="gf-btn active" onclick="setFilter(this,'7')">7J</button>
+        <button class="gf-btn" onclick="setFilter(this,'30')">30J</button>
+        <button class="gf-btn" onclick="setFilter(this,'90')">3M</button>
+      </div>
+    </div>
+    <div class="graph-wrap">
+      <svg id="graph-svg" viewBox="0 0 280 110" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#a78bfa"/>
+            <stop offset="100%" stop-color="#d4af37"/>
+          </linearGradient>
+          <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.2"/>
+            <stop offset="100%" stop-color="#a78bfa" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <path id="graph-area" fill="url(#areaGrad)" d=""/>
+        <path id="graph-line" fill="none" stroke="url(#lineGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d=""/>
+        <g id="graph-dots"></g>
+      </svg>
+    </div>
+    <div class="graph-labels" id="graph-labels"></div>
+  </div>
+
+  <!-- OBJECTIF -->
+  <div class="objectif-card">
+    <div class="obj-header">
+      <div class="obj-title">🎯 OBJECTIF BANKROLL</div>
+      <div class="obj-edit" onclick="editObjectif()">✏️ Modifier</div>
+    </div>
+    <div class="obj-amounts">
+      <div class="obj-current" id="obj-current">--</div>
+      <div class="obj-target" id="obj-target">→ --</div>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="obj-progress" style="width:0%"></div>
+    </div>
+    <div class="obj-footer">
+      <div class="obj-pct" id="obj-pct">0%</div>
+      <div class="obj-remain" id="obj-remain">Définissez un objectif</div>
+    </div>
+  </div>
+
+  <!-- CONSEIL MISE -->
+  <div class="conseil-card">
+    <div class="conseil-header">
+      <div class="conseil-icon">💡</div>
+      <div>
+        <div class="conseil-title">CONSEIL DE MISE</div>
+        <div class="conseil-sub" id="conseil-sub">Basé sur ta bankroll actuelle</div>
+      </div>
+    </div>
+    <div class="mise-suggestion">
+      <div class="ms-label">Mise recommandée (2%)</div>
+      <div class="ms-val" id="mise-rec">--</div>
+    </div>
+    <div class="mise-levels">
+      <div class="ml-item safe">
+        <div class="ml-pct">1%</div>
+        <div class="ml-val" id="mise-1">--</div>
+        <div class="ml-lbl">Prudent</div>
+      </div>
+      <div class="ml-item medium">
+        <div class="ml-pct">2%</div>
+        <div class="ml-val" id="mise-2">--</div>
+        <div class="ml-lbl">Équilibré ⭐</div>
+      </div>
+      <div class="ml-item risky">
+        <div class="ml-pct">5%</div>
+        <div class="ml-val" id="mise-5">--</div>
+        <div class="ml-lbl">Risqué</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const SYM = '{{ session.get("currency_symbol", "€") }}';
+let capital = 0;
+let currentFilter = '7';
+let allBets = [];
+
+function fmt(v) {
+  const n = parseFloat(v) || 0;
+  return (n >= 0 ? '+' : '') + n.toFixed(2) + SYM;
+}
+
+function fmtPos(v) {
+  return (parseFloat(v) || 0).toFixed(2) + SYM;
+}
+
+async function loadBankroll() {
+  try {
+    // Charger les bets
+    const r = await fetch('/api/bets', { credentials: 'include' });
+    const d = await r.json();
+    allBets = d.bets || [];
+
+    // Charger le capital
+    const r2 = await fetch('/api/bankroll', { credentials: 'include' });
+    const d2 = await r2.json();
+    capital = parseFloat(d2.capital || d2.current_capital || 200);
+
+    updateUI();
+    drawGraph(currentFilter);
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+function updateUI() {
+  // Capital
+  document.getElementById('capital-val').textContent = fmtPos(capital);
+  document.getElementById('capital-input').placeholder = 'Capital actuel: ' + fmtPos(capital);
+
+  // Stats
+  const won = allBets.filter(b => b.result === 'won');
+  const lost = allBets.filter(b => b.result === 'lost');
+  const pending = allBets.filter(b => b.result === 'pending');
+  const profit = allBets.reduce((s, b) => s + (parseFloat(b.profit) || 0), 0);
+  const staked = allBets.filter(b => b.result !== 'pending').reduce((s, b) => s + (parseFloat(b.stake) || 0), 0);
+  const roi = staked ? Math.round(profit / staked * 100) : 0;
+
+  const profitEl = document.getElementById('stat-profit');
+  profitEl.textContent = fmt(profit);
+  profitEl.className = 'cs-val ' + (profit >= 0 ? 'green' : 'red');
+
+  document.getElementById('stat-pending').textContent = pending.length;
+  document.getElementById('stat-roi').textContent = (roi >= 0 ? '+' : '') + roi + '%';
+
+  // Conseil mise
+  const m1 = (capital * 0.01).toFixed(2);
+  const m2 = (capital * 0.02).toFixed(2);
+  const m5 = (capital * 0.05).toFixed(2);
+  document.getElementById('conseil-sub').textContent = `Basé sur ta bankroll actuelle de ${fmtPos(capital)}`;
+  document.getElementById('mise-rec').textContent = m2 + SYM;
+  document.getElementById('mise-1').textContent = m1 + SYM;
+  document.getElementById('mise-2').textContent = m2 + SYM;
+  document.getElementById('mise-5').textContent = m5 + SYM;
+
+  // Objectif
+  const obj = parseFloat(localStorage.getItem('mbp_objectif') || capital * 2);
+  const pct = Math.min(100, Math.round(capital / obj * 100));
+  const remain = Math.max(0, obj - capital).toFixed(2);
+  document.getElementById('obj-current').textContent = fmtPos(capital);
+  document.getElementById('obj-target').textContent = '→ ' + fmtPos(obj);
+  document.getElementById('obj-progress').style.width = pct + '%';
+  document.getElementById('obj-pct').textContent = pct + '%';
+  document.getElementById('obj-remain').textContent = `Il te reste ${remain}${SYM} à atteindre`;
+}
+
+function drawGraph(days) {
+  const now = new Date();
+  const cutoff = new Date(now - days * 86400000);
+  const filtered = allBets.filter(b => b.result !== 'pending' && new Date(b.created_at) >= cutoff);
+
+  if (!filtered.length) {
+    document.getElementById('graph-line').setAttribute('d', '');
+    document.getElementById('graph-area').setAttribute('d', '');
+    document.getElementById('graph-dots').innerHTML = '';
+    document.getElementById('graph-labels').innerHTML = '<span class="graph-lbl">Aucune donnée</span>';
+    return;
+  }
+
+  // Calculer les points
+  const sorted = filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  let cumul = 0;
+  const points = sorted.map(b => { cumul += parseFloat(b.profit) || 0; return cumul; });
+
+  const minV = Math.min(0, ...points);
+  const maxV = Math.max(0.1, ...points);
+  const range = maxV - minV || 1;
+
+  const W = 280, H = 100, PAD = 10;
+  const xs = points.map((_, i) => PAD + (i / Math.max(points.length - 1, 1)) * (W - PAD * 2));
+  const ys = points.map(v => PAD + (1 - (v - minV) / range) * (H - PAD * 2));
+
+  const line = xs.map((x, i) => `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${ys[i].toFixed(1)}`).join(' ');
+  const area = line + ` L${xs[xs.length-1].toFixed(1)},${H} L${xs[0].toFixed(1)},${H} Z`;
+
+  document.getElementById('graph-line').setAttribute('d', line);
+  document.getElementById('graph-area').setAttribute('d', area);
+
+  // Dots
+  const dotsEl = document.getElementById('graph-dots');
+  dotsEl.innerHTML = xs.map((x, i) => {
+    const isPeak = points[i] === Math.max(...points);
+    return `<circle cx="${x.toFixed(1)}" cy="${ys[i].toFixed(1)}" r="${isPeak ? 4 : 3}" fill="${isPeak ? '#d4af37' : '#a78bfa'}" stroke="#0a0015" stroke-width="2"/>`;
+  }).join('');
+
+  // Labels
+  const labels = sorted.map(b => {
+    const d = new Date(b.created_at);
+    return ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'][d.getDay()];
+  });
+  const step = Math.max(1, Math.floor(labels.length / 7));
+  const shown = labels.filter((_, i) => i % step === 0);
+  document.getElementById('graph-labels').innerHTML = shown.map(l => `<span class="graph-lbl">${l}</span>`).join('');
+}
+
+function setFilter(btn, days) {
+  document.querySelectorAll('.gf-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter = days;
+  drawGraph(parseInt(days));
+}
+
+async function saveCapital() {
+  const val = parseFloat(document.getElementById('capital-input').value);
+  if (!val || val < 10) {
+    showToast('Montant invalide (minimum 10)', 'error');
+    return;
+  }
+  try {
+    const r = await fetch('/api/bankroll', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ capital: val })
+    });
+    const d = await r.json();
+    if (d.ok) {
+      capital = val;
+      updateUI();
+      drawGraph(parseInt(currentFilter));
+      showToast('Capital sauvegardé ✓', 'success');
+    } else {
+      showToast(d.error || 'Erreur', 'error');
+    }
+  } catch(e) { showToast('Erreur réseau', 'error'); }
+}
+
+function editObjectif() {
+  const current = parseFloat(localStorage.getItem('mbp_objectif') || capital * 2);
+  const nouvel = prompt('Nouvel objectif (' + SYM + '):', current);
+  if (nouvel && parseFloat(nouvel) > capital) {
+    localStorage.setItem('mbp_objectif', parseFloat(nouvel));
+    updateUI();
+  }
+}
+
+function showToast(msg, type) {
+  let t = document.getElementById('mbp-toast-bk');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'mbp-toast-bk';
+    t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:8px;z-index:9999;font-size:13px;font-weight:600;transition:opacity .3s;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.background = type === 'error' ? '#7f1d1d' : '#14532d';
+  t.style.color = '#fff';
+  t.style.opacity = '1';
+  setTimeout(() => t.style.opacity = '0', 2500);
+}
+
+loadBankroll();
+</script>
+{% endblock %}

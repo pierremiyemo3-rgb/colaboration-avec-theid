@@ -1,0 +1,367 @@
+{% extends "base.html" %}
+{% set active_page = 'pronostic' %}
+{% block title %}Morgan BetPro — Pronostic du Jour{% endblock %}
+
+{% block extra_css %}
+<style>
+.prono-tabs-wrap{background:rgba(10,0,21,0.97);flex-shrink:0;padding:12px 16px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+.prono-tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.prono-tabs::-webkit-scrollbar{display:none}
+.prono-tab{padding:8px 14px;border-radius:20px 20px 0 0;font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:.5px;white-space:nowrap;cursor:pointer;color:var(--text2);background:transparent;border:1px solid transparent;border-bottom:none;transition:all .2s;flex-shrink:0}
+.prono-tab:hover{color:var(--text);background:rgba(255,255,255,0.03)}
+.prono-tab.active{background:var(--vdim);border-color:var(--bv);color:var(--violet)}
+.prono-tab-line{height:1px;background:linear-gradient(90deg,var(--violet),var(--or));flex-shrink:0}
+.prono-pick{background:var(--surface);border:1px solid var(--bv);border-radius:16px;padding:14px;margin-bottom:10px;position:relative;overflow:hidden;cursor:pointer;transition:all .2s}
+.prono-pick::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--violet),transparent)}
+.prono-pick:hover{border-color:rgba(167,139,250,0.3);transform:translateY(-1px)}
+.prono-pick.locked{cursor:pointer;position:relative;overflow:hidden}
+.prono-pick.locked .pp-match-row,.prono-pick.locked .pp-footer{filter:blur(5px);pointer-events:none;user-select:none}
+.prono-pick.result-won{border-color:rgba(74,222,128,0.4)!important;background:rgba(74,222,128,0.05)!important}
+.prono-pick.result-won::before{background:linear-gradient(90deg,#4ade80,transparent)!important}
+.prono-pick.result-lost{border-color:rgba(248,113,113,0.4)!important;background:rgba(248,113,113,0.05)!important}
+.prono-pick.result-lost::before{background:linear-gradient(90deg,#f87171,transparent)!important}
+.lock-overlay{position:absolute;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,0,21,0.7);backdrop-filter:blur(2px);cursor:pointer;border-radius:12px}
+.lock-box{display:flex;flex-direction:column;align-items:center;gap:6px;background:rgba(167,139,250,0.15);border:1px solid var(--bv);border-radius:12px;padding:12px 20px;text-align:center}
+.lock-text{font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--violet);letter-spacing:1px}
+.pp-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.pp-league{font-size:9px;font-weight:700;color:var(--violet);background:var(--vdim);border:1px solid var(--bv);padding:2px 8px;border-radius:6px}
+.pp-time{font-size:10px;color:var(--text2)}
+.result-badge-won{font-family:'Orbitron',monospace;font-size:8px;font-weight:700;padding:2px 8px;border-radius:6px;background:rgba(74,222,128,0.15);color:#4ade80;border:1px solid rgba(74,222,128,0.3)}
+.result-badge-lost{font-family:'Orbitron',monospace;font-size:8px;font-weight:700;padding:2px 8px;border-radius:6px;background:rgba(248,113,113,0.15);color:#f87171;border:1px solid rgba(248,113,113,0.3)}
+.pp-market-center{text-align:center;font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--or);margin-bottom:8px;letter-spacing:.5px}
+.pp-match-row{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:6px}
+.pp-team{display:flex;align-items:center;gap:5px;flex:1;min-width:0}
+.pp-team.right{flex-direction:row-reverse}
+.pp-logo{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;overflow:hidden}
+.pp-logo img{width:100%;height:100%;object-fit:contain}
+.pp-name{font-size:12px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pp-score{font-family:'Orbitron',monospace;font-size:16px;font-weight:900;color:var(--or);min-width:48px;text-align:center;flex-shrink:0}
+.pp-score.time{font-size:12px;color:var(--text2)}
+.pp-status-center{text-align:center;margin-bottom:10px}
+.pp-footer{display:flex;align-items:center;justify-content:space-between}
+.pp-pct{font-family:'Orbitron',monospace;font-size:14px;font-weight:900;background:linear-gradient(90deg,var(--violet),var(--or));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.pp-cote{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;color:var(--or);background:var(--odim);border:1px solid var(--bo);padding:3px 10px;border-radius:8px}
+.combo-chef{background:linear-gradient(135deg,rgba(212,175,55,0.08),rgba(139,92,246,0.06));border:1px solid rgba(212,175,55,0.3);border-radius:16px;padding:16px;margin-bottom:10px;position:relative;overflow:hidden;cursor:pointer}
+.combo-chef::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--violet),var(--or),var(--violet))}
+.combo-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.combo-crown{font-size:18px;flex-shrink:0}
+.combo-title{font-family:'Orbitron',monospace;font-size:10px;font-weight:900;color:var(--or);letter-spacing:1px}
+.combo-sub{font-size:10px;color:var(--text2);margin-bottom:12px}
+.combo-picks{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.combo-pick-row{display:flex;align-items:center;justify-content:space-between;font-size:12px}
+.combo-pick-match{color:var(--text);font-weight:700}
+.combo-pick-market{font-size:9px;color:var(--text2)}
+.combo-cote-row{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06)}
+.combo-cote-lbl{font-size:10px;color:var(--text2);font-family:'Orbitron',monospace}
+.combo-cote-val{font-family:'Orbitron',monospace;font-size:22px;font-weight:900;background:linear-gradient(90deg,var(--violet),var(--or));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+</style>
+{% endblock %}
+
+{% block content_class %}no-pad{% endblock %}
+
+{% block content %}
+<div class="prono-tabs-wrap">
+  <div class="prono-tabs" id="prono-tabs">
+    <button class="prono-tab active" data-tab="reco">⭐ RECOMMANDÉ</button>
+    <button class="prono-tab" data-tab="victoire">🏆 VICTOIRE</button>
+    <button class="prono-tab" data-tab="dc">🎲 DC</button>
+    <button class="prono-tab" data-tab="gg">⚽ GG</button>
+    <button class="prono-tab" data-tab="over15">📈 OVER 1.5</button>
+    <button class="prono-tab" data-tab="over25">📊 OVER 2.5</button>
+    <button class="prono-tab" data-tab="gg25">🔥 GG+2.5</button>
+    <button class="prono-tab" data-tab="score">🎯 SCORE EXACT</button>
+    <button class="prono-tab" data-tab="buteurs">👟 BUTEURS</button>
+    <button class="prono-tab" data-tab="combine">🔗 COMBINÉ</button>
+    <button class="prono-tab" data-tab="bilan">📊 BILAN</button>
+  </div>
+  <div class="prono-tab-line"></div>
+</div>
+
+<div style="padding:14px 16px;padding-bottom:calc(var(--nav-h) + 14px);overflow-y:auto;flex:1">
+  <div style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--or);text-align:right;margin-bottom:10px" id="prono-date"></div>
+  <div class="loader" id="prono-loader"><div class="loader-ring"></div><div class="loader-text">CHARGEMENT...</div></div>
+  <div id="prono-content" style="display:none"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const USER_PLAN = '{{ session.get("subscription", "free") }}';
+const PLAN_LIMITS = { free: 3, starter: 5, pro: 7, vip: 9, owner: 99 };
+const userLimit = PLAN_LIMITS[USER_PLAN] || 3;
+
+const now = new Date();
+document.getElementById('prono-date').textContent =
+  now.toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+function getMarketLabel(pick, tab) {
+  const mkts = pick.markets || [];
+  if (tab === 'gg') { const m = mkts.find(m => m.type==='GG'); return m ? m.label||'Les deux équipes marquent' : 'GG'; }
+  if (tab === 'over15') { const m = mkts.find(m => m.type==='O15'); return m ? m.label||'Over 1.5 buts' : 'Over 1.5'; }
+  if (tab === 'over25') { const m = mkts.find(m => m.type==='O25'); return m ? m.label||'Over 2.5 buts' : 'Over 2.5'; }
+  if (tab === 'victoire') { const m = mkts.find(m => m.type==='1X2'); return m ? m.label||pick.top_outcome||'Victoire' : pick.top_outcome||'Victoire'; }
+  if (pick.top_outcome) return pick.top_outcome.slice(0, 20);
+  if (mkts.length) { const best = mkts.sort((a,b) => (b.pct||0)-(a.pct||0))[0]; return best.label||best.type||'PICK'; }
+  return 'PICK';
+}
+
+let freePickIds = new Set();
+function updateFreePickIds() {
+  const limit = PLAN_LIMITS[USER_PLAN] || 3;
+  const sorted = [...pronostics].sort((a,b) => (b.confidence||b.top_pct||0)-(a.confidence||a.top_pct||0));
+  freePickIds = new Set(sorted.slice(0, limit).map(p => p.fixture_id || p.home+'_'+p.away));
+}
+
+function getConf(pick, tab) {
+  return pick.confidence || pick.top_pct || 0;
+}
+
+function getCote(pick) {
+  if (pick.main_cote) return parseFloat(pick.main_cote).toFixed(2);
+  const mkts = pick.markets || [];
+  if (mkts.length) return parseFloat(mkts[0].cote||1.5).toFixed(2);
+  return null;
+}
+
+function getStatusBadge(status, elapsed) {
+  const live = ['1H','2H','HT','ET','P','BT'];
+  if (live.includes(status)) return '<span class="badge badge-live">🔴 EN COURS' + (elapsed ? ' · '+elapsed+"'" : '') + '</span>';
+  if (status === 'FT') return '<span class="badge badge-won">✓ TERMINÉ</span>';
+  return '<span class="badge badge-coming">À VENIR</span>';
+}
+
+function calcResult(pick, market) {
+  if (!pick.home_score && pick.home_score !== 0) return null;
+  const hs = parseInt(pick.home_score), as_ = parseInt(pick.away_score);
+  const total = hs + as_;
+  const mkt = market.toLowerCase();
+  if (mkt.includes('gg') || mkt.includes('deux')) return hs > 0 && as_ > 0 ? 'won' : 'lost';
+  if (mkt.includes('over 2.5')) return total > 2 ? 'won' : 'lost';
+  if (mkt.includes('over 1.5')) return total > 1 ? 'won' : 'lost';
+  if (mkt.includes('under 2.5')) return total < 3 ? 'won' : 'lost';
+  if (mkt.includes('nul') || mkt.includes('draw')) return hs === as_ ? 'won' : 'lost';
+  if (mkt.includes('victoire') || mkt.includes('v1') || mkt.includes('v2')) {
+    const hw = (pick.home||'').toLowerCase().split(' ')[0];
+    const aw = (pick.away||'').toLowerCase().split(' ')[0];
+    if (hw && mkt.includes(hw)) return hs > as_ ? 'won' : 'lost';
+    if (aw && mkt.includes(aw)) return as_ > hs ? 'won' : 'lost';
+    return hs > as_ ? 'won' : 'lost';
+  }
+  return null;
+}
+
+function buildCard(pick, locked, tab) {
+  const status = pick.status || 'NS';
+  const elapsed = pick.elapsed;
+  const isLive = ['1H','2H','HT','ET','P','BT'].includes(status);
+  const isFT   = status === 'FT';
+  const market = getMarketLabel(pick, tab);
+  const conf   = getConf(pick, tab);
+  const cote   = getCote(pick);
+
+  const scoreHtml = (isLive || isFT)
+    ? '<div class="pp-score">' + (pick.home_score??'?') + '-' + (pick.away_score??'?') + '</div>'
+    : '<div class="pp-score time">' + (pick.time||'--:--') + '</div>';
+
+  const homeLogo = pick.home_logo ? '<img src="' + pick.home_logo + '" alt="">' : '⚽';
+  const awayLogo = pick.away_logo ? '<img src="' + pick.away_logo + '" alt="">' : '⚽';
+  const lockHtml = locked ? '<div class="lock-overlay" onclick="window.location.href=\'/subscribe\'"><div class="lock-box"><span>🔒</span><span class="lock-text">ABONNEMENT REQUIS</span></div></div>' : '';
+
+  // Calculer résultat si FT
+  let resultCls = '', topRight = '';
+  if (isFT) {
+    const res = calcResult(pick, market);
+    if (res === 'won') { resultCls = 'result-won'; topRight = '<span class="result-badge-won">🎉 GAGNÉ</span>'; }
+    else if (res === 'lost') { resultCls = 'result-lost'; topRight = '<span class="result-badge-lost">✗ PERDU</span>'; }
+    else { topRight = '<span class="pp-time">' + (pick.time||'') + '</span>'; }
+  } else {
+    topRight = '<span class="pp-time">' + (pick.time||'') + '</span>';
+  }
+
+  return '<div class="prono-pick ' + resultCls + (locked?' locked':'') + '">'
+    + '<div class="pp-top"><span class="pp-league">' + (pick.league||'Ligue') + '</span>' + topRight + '</div>'
+    + '<div class="pp-market-center">' + market + '</div>'
+    + '<div class="pp-match-row">'
+    + '<div class="pp-team"><div class="pp-logo">' + homeLogo + '</div><div class="pp-name">' + (pick.home||'?') + '</div></div>'
+    + scoreHtml
+    + '<div class="pp-team right"><div class="pp-name">' + (pick.away||'?') + '</div><div class="pp-logo">' + awayLogo + '</div></div>'
+    + '</div>'
+    + '<div class="pp-status-center">' + getStatusBadge(status, elapsed) + '</div>'
+    + '<div class="pp-footer">'
+    + '<div class="pp-pct">' + (conf ? conf+'%' : '') + '</div>'
+    + (cote ? '<div class="pp-cote">×' + cote + '</div>' : '')
+    + '</div>'
+    + lockHtml
+    + '</div>';
+}
+
+let allData = null;
+let pronostics = [];
+let buteurs = [];
+let combos = [];
+
+async function loadPronostic() {
+  try {
+    const r = await fetch('/api/pronostic-du-jour', { credentials:'include' });
+    allData = await r.json();
+    document.getElementById('prono-loader').style.display = 'none';
+    document.getElementById('prono-content').style.display = 'block';
+    renderTab('reco');
+  } catch(e) {
+    document.getElementById('prono-loader').style.display = 'none';
+    document.getElementById('prono-content').style.display = 'block';
+    document.getElementById('prono-content').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Erreur de chargement</div></div>';
+  }
+}
+
+function renderTab(tab) {
+  const container = document.getElementById('prono-content');
+  if (!allData || !allData.pronostics) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">⚽</div><div class="empty-title">Aucun pick disponible</div><div class="empty-sub">Les picks seront disponibles prochainement.</div></div>';
+    return;
+  }
+
+  pronostics = allData.pronostics || [];
+  updateFreePickIds();
+  buteurs = allData.buteurs || [];
+  combos  = allData.combos || allData.combines || [];
+
+  let picks = [];
+  if (tab === 'reco') {
+    picks = [...pronostics].sort((a,b) => (b.confidence||b.top_pct||0)-(a.confidence||a.top_pct||0));
+  } else if (tab === 'victoire') {
+    picks = pronostics.filter(p => (p.markets||[]).some(m => m.type==='1X2')).sort((a,b) => (b.confidence||0)-(a.confidence||0));
+    if (!picks.length) picks = [...pronostics].sort((a,b) => (b.confidence||0)-(a.confidence||0));
+  } else if (tab === 'gg') {
+    picks = pronostics.filter(p => (p.markets||[]).some(m => m.type==='GG')).sort((a,b) => (b.bts||b.confidence||0)-(a.bts||a.confidence||0));
+    if (!picks.length) picks = [...pronostics].sort((a,b) => (b.bts||0)-(a.bts||0));
+  } else if (tab === 'over15') {
+    picks = pronostics.filter(p => (p.markets||[]).some(m => m.type==='O15')).sort((a,b) => (b.bts_o15||b.confidence||0)-(a.bts_o15||a.confidence||0));
+    if (!picks.length) picks = [...pronostics].sort((a,b) => (b.bts_o15||0)-(a.bts_o15||0));
+  } else if (tab === 'over25') {
+    picks = pronostics.filter(p => (p.markets||[]).some(m => m.type==='O25')).sort((a,b) => (b.over25||b.bts_o25||b.confidence||0)-(a.over25||a.bts_o25||a.confidence||0));
+    if (!picks.length) picks = [...pronostics].sort((a,b) => (b.over25||b.bts_o25||0)-(a.over25||a.bts_o25||0));
+  } else if (tab === 'gg25') {
+    picks = pronostics.filter(p => (p.markets||[]).some(m => m.type==='GG_O25'||m.type==='GGO25'));
+  } else if (tab === 'dc') {
+    picks = pronostics.filter(p => (p.markets||[]).some(m => ['DC','1X','X2','12'].includes(m.type)));
+  } else if (tab === 'score') {
+    picks = pronostics.filter(p => (p.markets||[]).some(m => ['SCORE_EXACT','EXACT','SE'].includes(m.type)||(m.label||'').toLowerCase().includes('exact'))).sort((a,b) => (b.confidence||0)-(a.confidence||0));
+  } else if (tab === 'buteurs') {
+    picks = buteurs.sort((a,b) => (b.conf||b.confidence||0)-(a.conf||a.confidence||0));
+  } else if (tab === 'bilan') {
+    renderBilanTab(pronostics);
+    return;
+  } else if (tab === 'combine') {
+    renderCombo(combos);
+    return;
+  } else {
+    picks = [...pronostics].sort((a,b) => (b.confidence||0)-(a.confidence||0));
+  }
+
+  if (!picks.length) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Aucun pick disponible</div><div class="empty-sub">Pas de pick pour ce marché aujourd\'hui.</div></div>';
+    return;
+  }
+
+  let html = '';
+  picks.forEach((pick, i) => {
+    const locked = pick.locked === true || i >= userLimit;
+    html += buildCard(pick, locked, tab);
+  });
+  container.innerHTML = html;
+}
+
+function renderCombo(combos) {
+  const container = document.getElementById('prono-content');
+  const best = pronostics.filter(p => !p.locked).sort((a,b) => (b.confidence||b.top_pct||0)-(a.confidence||a.top_pct||0)).slice(0,3);
+  if (!best.length) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔗</div><div class="empty-title">Aucun combiné disponible</div></div>';
+    return;
+  }
+  const totalCote = best.reduce((acc, p) => acc * parseFloat(p.main_cote||1.5), 1);
+  const avgConf   = Math.round(best.reduce((acc, p) => acc + (p.confidence||p.top_pct||0), 0) / best.length);
+  let html = '<div style="background:linear-gradient(135deg,rgba(167,139,250,0.08),rgba(212,175,55,0.05));border:1px solid var(--bv);border-radius:16px;padding:16px;margin-bottom:12px;position:relative;overflow:hidden"><div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--violet),var(--or))"></div><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div style="font-family:\'Orbitron\',monospace;font-size:9px;color:var(--text2);letter-spacing:2px">🔗 COMBINÉ DU JOUR</div><div style="font-family:\'Orbitron\',monospace;font-size:10px;font-weight:700;color:var(--violet)">' + avgConf + '% confiance</div></div>'
+    + best.map(p => '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)"><div><div style="font-size:12px;font-weight:700;color:var(--text)">' + p.home + ' vs ' + p.away + '</div><div style="font-size:10px;color:var(--text2)">' + getMarketLabel(p,'reco') + '</div></div><div style="font-family:\'Orbitron\',monospace;font-size:13px;font-weight:900;color:var(--or)">×' + parseFloat(p.main_cote||1.5).toFixed(2) + '</div></div>').join('')
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.08)"><div style="font-size:11px;color:var(--text2)">Cote totale</div><div style="font-family:\'Orbitron\',monospace;font-size:22px;font-weight:900;background:linear-gradient(90deg,var(--violet),var(--or));-webkit-background-clip:text;-webkit-text-fill-color:transparent">×' + totalCote.toFixed(2) + '</div></div></div>'
+    + '<a href="/lab/ticket" style="display:block"><button style="width:100%;padding:12px;border-radius:12px;background:linear-gradient(135deg,var(--violet2),var(--or));border:none;color:#fff;font-family:\'Orbitron\',monospace;font-size:10px;font-weight:700;cursor:pointer">🎟️ OUVRIR LE TICKET PRO →</button></a>';
+  container.innerHTML = html;
+}
+
+document.getElementById('prono-tabs').addEventListener('click', e => {
+  const btn = e.target.closest('.prono-tab');
+  if (!btn) return;
+  document.querySelectorAll('.prono-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('prono-content').innerHTML = '';
+  document.getElementById('prono-loader').style.display = 'flex';
+  setTimeout(() => {
+    document.getElementById('prono-loader').style.display = 'none';
+    document.getElementById('prono-content').style.display = 'block';
+    renderTab(btn.dataset.tab);
+  }, 200);
+});
+
+function renderBilanTab(picks) {
+  const container = document.getElementById('prono-content');
+  const finis = picks.filter(p => p.status === 'FT' && p.home_score !== null && p.home_score !== undefined);
+  if (!finis.length) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">Aucun match terminé</div><div class="empty-sub">Le bilan apparaîtra quand les matchs du jour seront finis.</div></div>';
+    return;
+  }
+  const MARCHES = [
+    { key: 'Victoire', fn: function(h,a,t) { return h > a ? 'won' : 'lost'; } },
+    { key: 'Nul', fn: function(h,a,t) { return h === a ? 'won' : 'lost'; } },
+    { key: 'Double Chance', fn: function(h,a,t) { return h >= a ? 'won' : 'lost'; } },
+    { key: 'GG', fn: function(h,a,t) { return (h > 0 && a > 0) ? 'won' : 'lost'; } },
+    { key: 'Over 1.5', fn: function(h,a,t) { return t > 1 ? 'won' : 'lost'; } },
+    { key: 'Over 2.5', fn: function(h,a,t) { return t > 2 ? 'won' : 'lost'; } },
+    { key: 'GG + Over 2.5', fn: function(h,a,t) { return (h > 0 && a > 0 && t > 2) ? 'won' : 'lost'; } },
+  ];
+  const stats = {};
+  MARCHES.forEach(function(m) { stats[m.key] = { won: 0, lost: 0 }; });
+  finis.forEach(function(p) {
+    const hs = parseInt(p.home_score), as_ = parseInt(p.away_score), t = hs + as_;
+    MARCHES.forEach(function(m) {
+      const r = m.fn(hs, as_, t);
+      if (r === 'won') stats[m.key].won++;
+      else stats[m.key].lost++;
+    });
+  });
+  const totalWon = Object.values(stats).reduce((s, v) => s + v.won, 0);
+  const totalLost = Object.values(stats).reduce((s, v) => s + v.lost, 0);
+  const totalAll = totalWon + totalLost;
+  const totalRate = totalAll ? Math.round(totalWon / totalAll * 100) : 0;
+  const rateColor = totalRate >= 60 ? '#4ade80' : totalRate >= 40 ? '#d4af37' : '#f87171';
+  let html = '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(167,139,250,0.15);border-radius:14px;padding:14px;margin-bottom:12px;position:relative;overflow:hidden">'
+    + '<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#a78bfa,#d4af37)"></div>'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">'
+    + '<div style="font-family:Orbitron,monospace;font-size:9px;letter-spacing:2px;color:#6b7280">BILAN DU JOUR — ' + finis.length + ' matchs</div>'
+    + '<div style="text-align:right"><div style="font-family:Orbitron,monospace;font-size:24px;font-weight:900;color:' + rateColor + '">' + totalRate + '%</div><div style="font-size:9px;color:#6b7280;font-family:Orbitron,monospace">TAUX RÉUSSITE</div></div>'
+    + '</div>'
+    + '<div style="display:flex;gap:8px;margin-bottom:16px">'
+    + '<div style="flex:1;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:10px;padding:10px;text-align:center"><div style="font-family:Orbitron,monospace;font-size:22px;font-weight:900;color:#4ade80">' + totalWon + '</div><div style="font-size:9px;color:#6b7280;font-family:Orbitron,monospace">GAGNÉS</div></div>'
+    + '<div style="flex:1;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);border-radius:10px;padding:10px;text-align:center"><div style="font-family:Orbitron,monospace;font-size:22px;font-weight:900;color:#f87171">' + totalLost + '</div><div style="font-size:9px;color:#6b7280;font-family:Orbitron,monospace">PERDUS</div></div>'
+    + '<div style="flex:1;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.2);border-radius:10px;padding:10px;text-align:center"><div style="font-family:Orbitron,monospace;font-size:22px;font-weight:900;color:#a78bfa">' + totalAll + '</div><div style="font-size:9px;color:#6b7280;font-family:Orbitron,monospace">TOTAL</div></div>'
+    + '</div>'
+    + '<table style="width:100%;border-collapse:collapse;font-size:12px">'
+    + '<tr><th style="text-align:left;color:#6b7280;padding:6px 8px;font-weight:600;border-bottom:1px solid rgba(255,255,255,0.08)">MARCHÉ</th><th style="color:#4ade80;padding:6px 8px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.08)">✓</th><th style="color:#f87171;padding:6px 8px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.08)">✗</th><th style="color:#6b7280;padding:6px 8px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.08)">%</th></tr>';
+  MARCHES.forEach(function(m) {
+    const s = stats[m.key];
+    const total = s.won + s.lost;
+    const taux = total ? Math.round(s.won / total * 100) : 0;
+    const color = taux >= 60 ? '#4ade80' : taux >= 40 ? '#d4af37' : '#f87171';
+    html += '<tr><td style="padding:8px;color:#f3f4f6;font-weight:700;border-bottom:1px solid rgba(255,255,255,0.04)">' + m.key + '</td>'
+      + '<td style="text-align:center;padding:8px;color:#4ade80;font-weight:700;border-bottom:1px solid rgba(255,255,255,0.04)">' + s.won + '</td>'
+      + '<td style="text-align:center;padding:8px;color:#f87171;font-weight:700;border-bottom:1px solid rgba(255,255,255,0.04)">' + s.lost + '</td>'
+      + '<td style="text-align:center;padding:8px;font-weight:700;color:' + color + ';border-bottom:1px solid rgba(255,255,255,0.04)">' + taux + '%</td></tr>';
+  });
+  html += '</table></div>';
+  container.innerHTML = html;
+}
+
+loadPronostic();
+// Auto-refresh toutes les 3 minutes
+setInterval(loadPronostic, 180000);
+</script>
+{% endblock %}

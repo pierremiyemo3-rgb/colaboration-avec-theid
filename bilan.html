@@ -1,0 +1,463 @@
+{% extends "base.html" %}
+{% set active_page = 'bilan' %}
+{% block title %}Morgan BetPro — Bilan{% endblock %}
+
+{% block extra_css %}
+<style>
+.period-filter{display:flex;gap:6px;padding:12px 16px;background:rgba(10,0,21,0.97);flex-shrink:0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.pf-btn{flex:1;padding:8px;border-radius:10px;font-family:'Orbitron',monospace;font-size:8px;font-weight:700;letter-spacing:.5px;cursor:pointer;border:1px solid rgba(139,92,246,0.12);background:transparent;color:var(--text2);transition:all .2s;text-align:center}
+.pf-btn.active{background:rgba(167,139,250,0.10);border-color:rgba(167,139,250,0.4);color:var(--violet,#a78bfa)}
+.sec-label{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:3px;color:var(--text2);opacity:.7;margin-bottom:10px}
+.resume-card{background:linear-gradient(135deg,rgba(167,139,250,0.08),rgba(212,175,55,0.05));border:1px solid rgba(167,139,250,0.2);border-radius:16px;padding:16px;margin-bottom:14px;position:relative;overflow:hidden}
+.resume-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--violet,#a78bfa),var(--or,#d4af37),var(--violet,#a78bfa))}
+.resume-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rg-item{background:rgba(255,255,255,0.03);border-radius:12px;padding:12px;border:1px solid rgba(255,255,255,0.05)}
+.rg-val{font-family:'Orbitron',monospace;font-size:20px;font-weight:900;margin-bottom:4px}
+.rg-val.green{color:#4ade80}
+.rg-val.or{background:linear-gradient(90deg,var(--violet,#a78bfa),var(--or,#d4af37));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.rg-val.violet{color:var(--violet,#a78bfa)}
+.rg-val.red{color:#f87171}
+.rg-lbl{font-size:9px;color:var(--text2);font-family:'Orbitron',monospace;letter-spacing:.5px}
+.taux-card{background:rgba(255,255,255,0.03);border:1px solid rgba(139,92,246,0.12);border-radius:16px;padding:16px;margin-bottom:14px}
+.taux-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.taux-title{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--text)}
+.taux-val{font-family:'Orbitron',monospace;font-size:28px;font-weight:900;color:#4ade80}
+.taux-bar{height:12px;background:rgba(255,255,255,0.06);border-radius:20px;overflow:hidden;margin-bottom:12px}
+.taux-fill{height:100%;background:linear-gradient(90deg,var(--violet,#a78bfa),#4ade80);border-radius:20px;transition:width .8s ease}
+.taux-stats{display:flex;justify-content:space-between}
+.ts-item{text-align:center}
+.ts-val{font-family:'Orbitron',monospace;font-size:14px;font-weight:900;margin-bottom:2px}
+.ts-val.green{color:#4ade80}
+.ts-val.red{color:#f87171}
+.ts-val.or{color:var(--or,#d4af37)}
+.ts-lbl{font-size:9px;color:var(--text2);font-family:'Orbitron',monospace}
+.roi-card{background:rgba(255,255,255,0.03);border:1px solid rgba(139,92,246,0.12);border-radius:16px;padding:16px;margin-bottom:14px}
+.roi-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.roi-title{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--text)}
+.roi-val{font-family:'Orbitron',monospace;font-size:18px;font-weight:900;color:#4ade80}
+.graph-wrap{position:relative;height:100px;width:100%}
+.graph-wrap svg{width:100%;height:100%}
+.graph-labels{display:flex;justify-content:space-between;margin-top:6px}
+.graph-lbl{font-size:9px;color:var(--text2);font-family:'Orbitron',monospace}
+.marche-card{background:rgba(255,255,255,0.03);border:1px solid rgba(139,92,246,0.12);border-radius:16px;padding:16px;margin-bottom:14px}
+.marche-list{display:flex;flex-direction:column;gap:8px}
+.marche-row{display:flex;align-items:center;gap:10px}
+.marche-rank{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--text2);width:18px;flex-shrink:0}
+.marche-bar-wrap{flex:1}
+.marche-name{font-size:11px;font-weight:700;color:var(--text);margin-bottom:4px}
+.marche-bar{height:6px;background:rgba(255,255,255,0.06);border-radius:10px;overflow:hidden}
+.marche-fill{height:100%;border-radius:10px}
+.f-violet{background:var(--violet,#a78bfa)}
+.f-or{background:var(--or,#d4af37)}
+.f-green{background:#4ade80}
+.f-blue{background:#60a5fa}
+.marche-pct{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--text2);flex-shrink:0}
+.serie-card{background:linear-gradient(135deg,rgba(74,222,128,0.06),rgba(74,222,128,0.02));border:1px solid rgba(74,222,128,0.2);border-radius:16px;padding:16px;margin-bottom:14px}
+.serie-title{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:#4ade80;margin-bottom:12px}
+.serie-dots{display:flex;gap:6px;flex-wrap:wrap}
+.s-dot{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-family:'Orbitron',monospace}
+.s-dot.won{background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.3);color:#4ade80}
+.s-dot.lost{background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.2);color:#f87171}
+.serie-info{display:flex;justify-content:space-between;margin-top:10px;gap:8px}
+.si-item{text-align:center;background:rgba(255,255,255,0.02);border-radius:8px;padding:8px 12px;border:1px solid rgba(255,255,255,0.04);flex:1}
+.si-val{font-family:'Orbitron',monospace;font-size:14px;font-weight:900;margin-bottom:3px}
+.si-val.green{color:#4ade80}
+.si-val.red{color:#f87171}
+.si-lbl{font-size:8px;color:var(--text2)}
+</style>
+{% endblock %}
+
+{% block content_class %}no-pad{% endblock %}
+
+{% block content %}
+<div class="period-filter">
+  <button class="pf-btn active" onclick="setPeriod(this,7)">7 JOURS</button>
+  <button class="pf-btn" onclick="setPeriod(this,30)">30 JOURS</button>
+  <button class="pf-btn" onclick="setPeriod(this,90)">3 MOIS</button>
+  <button class="pf-btn" onclick="setPeriod(this,9999)">TOUT</button>
+</div>
+
+<div style="padding:14px 16px;padding-bottom:calc(var(--nav-h) + 80px);overflow-y:auto;flex:1;" id="bilan-scroll">
+
+  <div id="bilan-loader" style="text-align:center;padding:40px;color:var(--text2)">⏳ Chargement...</div>
+  <div id="bilan-content" style="display:none">
+
+    <!-- RÉSUMÉ GLOBAL -->
+    <div class="sec-label">📊 RÉSUMÉ GLOBAL</div>
+    <div class="resume-card">
+      <div class="resume-grid">
+        <div class="rg-item"><div class="rg-val green" id="b-gains">--</div><div class="rg-lbl">GAINS NETS</div></div>
+        <div class="rg-item"><div class="rg-val or" id="b-roi">--</div><div class="rg-lbl">ROI</div></div>
+        <div class="rg-item"><div class="rg-val violet" id="b-joues">--</div><div class="rg-lbl">PARIS JOUÉS</div></div>
+        <div class="rg-item"><div class="rg-val" style="color:var(--text)" id="b-mise">--</div><div class="rg-lbl">TOTAL MISÉ</div></div>
+      </div>
+    </div>
+
+    <!-- TAUX DE RÉUSSITE -->
+    <div class="sec-label">🎯 TAUX DE RÉUSSITE</div>
+    <div class="taux-card">
+      <div class="taux-header">
+        <div class="taux-title">Paris gagnés vs perdus</div>
+        <div class="taux-val" id="b-taux">--%</div>
+      </div>
+      <div class="taux-bar"><div class="taux-fill" id="b-taux-bar" style="width:0%"></div></div>
+      <div class="taux-stats">
+        <div class="ts-item"><div class="ts-val green" id="b-won">--</div><div class="ts-lbl">GAGNÉS</div></div>
+        <div class="ts-item"><div class="ts-val red" id="b-lost">--</div><div class="ts-lbl">PERDUS</div></div>
+        <div class="ts-item"><div class="ts-val or" id="b-best-cote">--</div><div class="ts-lbl">MEIL. COTE</div></div>
+      </div>
+    </div>
+
+    <!-- ROI GRAPHIQUE -->
+    <div class="roi-card">
+      <div class="roi-header">
+        <div class="roi-title">📈 ÉVOLUTION ROI</div>
+        <div class="roi-val" id="b-roi2">--</div>
+      </div>
+      <div class="graph-wrap">
+        <svg id="roi-svg" viewBox="0 0 280 95" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="roiGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#a78bfa"/>
+              <stop offset="100%" stop-color="#4ade80"/>
+            </linearGradient>
+            <linearGradient id="roiArea" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#4ade80" stop-opacity="0.15"/>
+              <stop offset="100%" stop-color="#4ade80" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <line stroke="rgba(255,255,255,0.08)" stroke-width="1" stroke-dasharray="4,4" x1="0" y1="55" x2="280" y2="55"/>
+          <path id="roi-area" fill="url(#roiArea)" d=""/>
+          <path id="roi-line" fill="none" stroke="url(#roiGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d=""/>
+        </svg>
+      </div>
+      <div class="graph-labels" id="roi-labels"></div>
+    </div>
+
+    <!-- MEILLEURS MARCHÉS -->
+    <div class="sec-label">🏆 MEILLEURS MARCHÉS</div>
+    <div class="marche-card">
+      <div class="marche-list" id="marche-list">
+        <div style="color:var(--text2);font-size:12px;text-align:center;padding:10px">Aucune donnée</div>
+      </div>
+    </div>
+
+    <!-- MEILLEUR JOUR -->
+    <div class="sec-label">📅 MEILLEUR JOUR DE LA SEMAINE</div>
+    <div class="marche-card">
+      <div class="marche-list" id="jour-list">
+        <div style="color:var(--text2);font-size:12px;text-align:center;padding:10px">Aucune donnée</div>
+      </div>
+    </div>
+
+    <!-- RECORDS PERSONNELS -->
+    <div class="sec-label">🏆 RECORDS PERSONNELS</div>
+    <div class="resume-card">
+      <div class="resume-grid">
+        <div class="rg-item"><div class="rg-val green" id="rec-best">--</div><div class="rg-lbl">MEILLEUR TICKET</div></div>
+        <div class="rg-item"><div class="rg-val violet" id="rec-cote">--</div><div class="rg-lbl">MEILLEURE COTE</div></div>
+        <div class="rg-item"><div class="rg-val red" id="rec-perte">--</div><div class="rg-lbl">PLUS GROSSE PERTE</div></div>
+        <div class="rg-item"><div class="rg-val green" id="rec-serie">--</div><div class="rg-lbl">MEILLEURE SÉRIE</div></div>
+      </div>
+    </div>
+
+    <!-- HISTORIQUE RÉCENT -->
+    <div class="sec-label">🔥 HISTORIQUE RÉCENT</div>
+    <div class="serie-card">
+      <div class="serie-title">10 DERNIERS PARIS</div>
+      <div class="serie-dots" id="serie-dots"></div>
+      <div class="serie-info">
+        <div class="si-item"><div class="si-val green" id="serie-cur">--</div><div class="si-lbl">Série actuelle</div></div>
+        <div class="si-item"><div class="si-val green" id="serie-best">--</div><div class="si-lbl">Meilleure série</div></div>
+        <div class="si-item"><div class="si-val red" id="serie-worst">--</div><div class="si-lbl">Pire série</div></div>
+      </div>
+    </div>
+
+    <!-- CONSEILS IA -->
+    <div class="sec-label">💡 CONSEILS PERSONNALISÉS IA</div>
+    <div id="conseils-card" style="background:linear-gradient(135deg,rgba(167,139,250,0.08),rgba(212,175,55,0.05));border:1px solid rgba(167,139,250,0.2);border-radius:16px;padding:16px;margin-bottom:14px;position:relative;overflow:hidden">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--violet,#a78bfa),var(--or,#d4af37))"></div>
+      <div id="conseils-loader" style="text-align:center;padding:20px;color:var(--text2)">
+        <div style="font-size:24px;margin-bottom:8px">🤖</div>
+        <div style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:1px">ANALYSE EN COURS...</div>
+      </div>
+      <div id="conseils-content" style="display:none"></div>
+      <button id="conseils-btn" onclick="loadConseils()" style="display:none;width:100%;margin-top:12px;padding:10px;background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.3);border-radius:10px;color:var(--violet,#a78bfa);font-family:'Orbitron',monospace;font-size:9px;font-weight:700;cursor:pointer;letter-spacing:1px">🔄 ACTUALISER L'ANALYSE</button>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const SYM = '{{ session.get("currency_symbol", "€") }}';
+let allBets = [];
+let currentDays = 7;
+
+function fmt(v) {
+  const n = parseFloat(v) || 0;
+  return (n >= 0 ? '+' : '') + n.toFixed(2) + SYM;
+}
+
+async function loadBilan() {
+  try {
+    const r = await fetch('/api/bets', { credentials: 'include' });
+    const d = await r.json();
+    allBets = d.bets || [];
+    document.getElementById('bilan-loader').style.display = 'none';
+    document.getElementById('bilan-content').style.display = 'block';
+    renderBilan(currentDays);
+    loadConseils();
+  } catch(e) {
+    document.getElementById('bilan-loader').innerHTML = '<div style="color:#f87171">Erreur de chargement</div>';
+  }
+}
+
+function setPeriod(btn, days) {
+  document.querySelectorAll('.pf-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentDays = days;
+  renderBilan(days);
+}
+
+function filterBets(days) {
+  const cutoff = new Date(Date.now() - days * 86400000);
+  return allBets.filter(b => new Date(b.created_at) >= cutoff);
+}
+
+function renderBilan(days) {
+  const bets = filterBets(days);
+  const decided = bets.filter(b => b.result !== 'pending');
+  const won = decided.filter(b => b.result === 'won');
+  const lost = decided.filter(b => b.result === 'lost');
+
+  const gains = decided.reduce((s, b) => s + (parseFloat(b.profit) || 0), 0);
+  const mised = decided.reduce((s, b) => s + (parseFloat(b.stake) || 0), 0);
+  const roi = mised ? Math.round(gains / mised * 100) : 0;
+  const taux = decided.length ? Math.round(won.length / decided.length * 100) : 0;
+  const bestCote = bets.reduce((max, b) => Math.max(max, parseFloat(b.odds) || 0), 0);
+
+  // Résumé
+  const gainsEl = document.getElementById('b-gains');
+  gainsEl.textContent = fmt(gains);
+  gainsEl.className = 'rg-val ' + (gains >= 0 ? 'green' : 'red');
+  document.getElementById('b-roi').textContent = (roi >= 0 ? '+' : '') + roi + '%';
+  document.getElementById('b-roi2').textContent = (roi >= 0 ? '+' : '') + roi + '%';
+  document.getElementById('b-roi2').style.color = roi >= 0 ? '#4ade80' : '#f87171';
+  document.getElementById('b-joues').textContent = decided.length;
+  document.getElementById('b-mise').textContent = mised.toFixed(2) + SYM;
+  document.getElementById('b-taux').textContent = taux + '%';
+  document.getElementById('b-taux').style.color = taux >= 50 ? '#4ade80' : '#f87171';
+  document.getElementById('b-taux-bar').style.width = taux + '%';
+  document.getElementById('b-won').textContent = won.length;
+  document.getElementById('b-lost').textContent = lost.length;
+  document.getElementById('b-best-cote').textContent = bestCote ? '×' + bestCote.toFixed(1) : '--';
+
+  // Graphique ROI
+  drawRoiGraph(decided);
+
+  // Meilleurs marchés
+  renderMarches(decided);
+
+  // Meilleur jour
+  renderJours(decided);
+
+  // Records
+  const bestProfit = Math.max(0, ...decided.map(b => parseFloat(b.profit) || 0));
+  const worstLoss = Math.min(0, ...decided.map(b => parseFloat(b.profit) || 0));
+  document.getElementById('rec-best').textContent = bestProfit ? '+' + bestProfit.toFixed(2) + SYM : '--';
+  document.getElementById('rec-cote').textContent = bestCote ? '×' + bestCote.toFixed(1) : '--';
+  document.getElementById('rec-perte').textContent = worstLoss ? worstLoss.toFixed(2) + SYM : '--';
+
+  // Séries
+  renderSeries(decided);
+}
+
+function drawRoiGraph(bets) {
+  if (!bets.length) return;
+  const sorted = [...bets].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  let cumul = 0;
+  const points = sorted.map(b => { cumul += parseFloat(b.profit) || 0; return cumul; });
+  const minV = Math.min(0, ...points);
+  const maxV = Math.max(0.1, ...points);
+  const range = maxV - minV || 1;
+  const W = 280, H = 90, PAD = 5;
+  const xs = points.map((_, i) => PAD + (i / Math.max(points.length - 1, 1)) * (W - PAD * 2));
+  const ys = points.map(v => PAD + (1 - (v - minV) / range) * (H - PAD * 2));
+  const line = xs.map((x, i) => `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${ys[i].toFixed(1)}`).join(' ');
+  const area = line + ` L${xs[xs.length-1].toFixed(1)},${H} L${xs[0].toFixed(1)},${H} Z`;
+  document.getElementById('roi-line').setAttribute('d', line);
+  document.getElementById('roi-area').setAttribute('d', area);
+  const days = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  const step = Math.max(1, Math.floor(sorted.length / 7));
+  const labels = sorted.filter((_, i) => i % step === 0).map(b => days[new Date(b.created_at).getDay()]);
+  document.getElementById('roi-labels').innerHTML = labels.map(l => `<span class="graph-lbl">${l}</span>`).join('');
+}
+
+function renderMarches(bets) {
+  const stats = {};
+  bets.forEach(b => {
+    const m = b.market || 'Autre';
+    if (!stats[m]) stats[m] = { won: 0, total: 0 };
+    stats[m].total++;
+    if (b.result === 'won') stats[m].won++;
+  });
+  const sorted = Object.entries(stats).sort((a, b) => (b[1].won/b[1].total) - (a[1].won/a[1].total)).slice(0, 4);
+  const colors = ['f-violet', 'f-or', 'f-green', 'f-blue'];
+  if (!sorted.length) { document.getElementById('marche-list').innerHTML = '<div style="color:var(--text2);font-size:12px;text-align:center;padding:10px">Aucune donnée</div>'; return; }
+  document.getElementById('marche-list').innerHTML = sorted.map(([m, s], i) => {
+    const pct = Math.round(s.won / s.total * 100);
+    return `<div class="marche-row">
+      <div class="marche-rank">${i + 1}</div>
+      <div class="marche-bar-wrap">
+        <div class="marche-name">${m}</div>
+        <div class="marche-bar"><div class="marche-fill ${colors[i]}" style="width:${pct}%"></div></div>
+      </div>
+      <div class="marche-pct">${pct}%</div>
+    </div>`;
+  }).join('');
+}
+
+function renderJours(bets) {
+  const jours = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  const stats = {};
+  bets.forEach(b => {
+    const j = jours[new Date(b.created_at).getDay()];
+    if (!stats[j]) stats[j] = { won: 0, total: 0 };
+    stats[j].total++;
+    if (b.result === 'won') stats[j].won++;
+  });
+  const sorted = Object.entries(stats).sort((a, b) => (b[1].won/b[1].total) - (a[1].won/a[1].total));
+  if (!sorted.length) { document.getElementById('jour-list').innerHTML = '<div style="color:var(--text2);font-size:12px;text-align:center;padding:10px">Aucune donnée</div>'; return; }
+  document.getElementById('jour-list').innerHTML = sorted.map(([j, s], i) => {
+    const pct = Math.round(s.won / s.total * 100);
+    const isWorst = i === sorted.length - 1 && pct < 50;
+    const color = isWorst ? 'style="background:var(--red,#f87171)"' : ['f-violet','f-or','f-green','f-blue'][Math.min(i, 3)];
+    const fill = isWorst ? `style="width:${pct}%;background:#f87171"` : `class="marche-fill ${color}" style="width:${pct}%"`;
+    const pctStyle = isWorst ? 'style="color:#f87171"' : '';
+    return `<div class="marche-row">
+      <div class="marche-rank">${isWorst ? '⚠️' : i + 1}</div>
+      <div class="marche-bar-wrap">
+        <div class="marche-name">${j}</div>
+        <div class="marche-bar"><div ${fill}></div></div>
+      </div>
+      <div class="marche-pct" ${pctStyle}>${pct}%</div>
+    </div>`;
+  }).join('');
+}
+
+function renderSeries(bets) {
+  const sorted = [...bets].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  const last10 = sorted.slice(0, 10).reverse();
+  document.getElementById('serie-dots').innerHTML = last10.map(b =>
+    `<div class="s-dot ${b.result}">${b.result === 'won' ? '✓' : '✗'}</div>`
+  ).join('');
+
+  // Calculer les séries
+  let curSerie = 0, bestSerie = 0, worstSerie = 0, tmpW = 0, tmpL = 0;
+  const chronological = [...bets].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  chronological.forEach(b => {
+    if (b.result === 'won') { tmpW++; tmpL = 0; bestSerie = Math.max(bestSerie, tmpW); }
+    else { tmpL++; tmpW = 0; worstSerie = Math.max(worstSerie, tmpL); }
+  });
+  if (chronological.length) {
+    const last = chronological[chronological.length - 1];
+    if (last.result === 'won') curSerie = tmpW;
+    else curSerie = -tmpL;
+  }
+
+  document.getElementById('rec-serie').textContent = bestSerie ? bestSerie + '🔥' : '--';
+  document.getElementById('serie-cur').textContent = curSerie > 0 ? curSerie + '🔥' : curSerie < 0 ? Math.abs(curSerie) + '❌' : '--';
+  document.getElementById('serie-best').textContent = bestSerie || '--';
+  document.getElementById('serie-worst').textContent = worstSerie || '--';
+}
+
+loadBilan();
+
+async function loadConseils() {
+  const decided = allBets.filter(b => b.result !== 'pending');
+  if (!decided.length) {
+    document.getElementById('conseils-loader').style.display = 'none';
+    document.getElementById('conseils-content').style.display = 'block';
+    document.getElementById('conseils-content').innerHTML = '<div style="color:var(--text2);font-size:12px;text-align:center;padding:10px">Jouez des paris pour obtenir des conseils personnalisés.</div>';
+    return;
+  }
+
+  const won = decided.filter(b => b.result === 'won');
+  const lost = decided.filter(b => b.result === 'lost');
+  const taux = Math.round(won.length / decided.length * 100);
+
+  // Stats marchés
+  const marches = {};
+  decided.forEach(b => {
+    const m = b.market || 'Autre';
+    if (!marches[m]) marches[m] = { won: 0, total: 0 };
+    marches[m].total++;
+    if (b.result === 'won') marches[m].won++;
+  });
+  const marcheStats = Object.entries(marches).map(([m, s]) => `${m}: ${Math.round(s.won/s.total*100)}% (${s.won}/${s.total})`).join(', ');
+
+  // Stats jours
+  const jours = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  const joursStats = {};
+  decided.forEach(b => {
+    const j = jours[new Date(b.created_at).getDay()];
+    if (!joursStats[j]) joursStats[j] = { won: 0, total: 0 };
+    joursStats[j].total++;
+    if (b.result === 'won') joursStats[j].won++;
+  });
+  const jourStatsStr = Object.entries(joursStats).map(([j, s]) => `${j}: ${Math.round(s.won/s.total*100)}%`).join(', ');
+
+  const gains = decided.reduce((s, b) => s + (parseFloat(b.profit) || 0), 0);
+  const mised = decided.reduce((s, b) => s + (parseFloat(b.stake) || 0), 0);
+  const roi = mised ? Math.round(gains / mised * 100) : 0;
+
+  const prompt = `Tu es un expert en paris sportifs. Analyse ces statistiques personnelles et donne 3 conseils courts et précis en français.
+
+Stats du pareur:
+- ${decided.length} paris joués, ${won.length} gagnés, ${lost.length} perdus
+- Taux de réussite: ${taux}%
+- ROI: ${roi}%
+- Gains nets: ${gains.toFixed(2)}€
+- Marchés joués: ${marcheStats}
+- Performance par jour: ${jourStatsStr}
+
+Réponds UNIQUEMENT avec un JSON valide, sans texte avant ou après:
+{"conseils": [{"emoji": "emoji", "titre": "titre court", "texte": "conseil en 1-2 phrases max"}, {"emoji": "emoji", "titre": "titre court", "texte": "conseil en 1-2 phrases max"}, {"emoji": "emoji", "titre": "titre court", "texte": "conseil en 1-2 phrases max"}]}`;
+
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const d = await r.json();
+    const text = (d.content || []).map(c => c.text || '').join('');
+    const json = JSON.parse(text.match(/\{[\s\S]*\}/)[0]);
+    const conseils = json.conseils || [];
+
+    document.getElementById('conseils-loader').style.display = 'none';
+    document.getElementById('conseils-btn').style.display = 'block';
+    document.getElementById('conseils-content').style.display = 'block';
+    document.getElementById('conseils-content').innerHTML = conseils.map(c => `
+      <div style="display:flex;gap:12px;margin-bottom:14px;padding:12px;background:rgba(255,255,255,0.03);border-radius:12px;border:1px solid rgba(255,255,255,0.06)">
+        <div style="font-size:24px;flex-shrink:0">${c.emoji}</div>
+        <div>
+          <div style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--violet,#a78bfa);margin-bottom:4px">${c.titre}</div>
+          <div style="font-size:12px;color:#d1d5db;line-height:1.6">${c.texte}</div>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    document.getElementById('conseils-loader').style.display = 'none';
+    document.getElementById('conseils-content').style.display = 'block';
+    document.getElementById('conseils-content').innerHTML = '<div style="color:#f87171;font-size:12px;text-align:center;padding:10px">Erreur lors de l\'analyse IA.</div>';
+  }
+}
+</script>
+{% endblock %}
