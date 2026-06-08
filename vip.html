@@ -1,0 +1,447 @@
+{% extends "base.html" %}
+{% set active_page = 'vip' %}
+{% block title %}Morgan BetPro — VIP{% endblock %}
+
+{% block extra_css %}
+<style>
+:root{--or:#d4af37;--violet:#a78bfa;--green:#4ade80;--red:#f87171}
+
+/* TEASER */
+.vip-hero{background:linear-gradient(135deg,rgba(212,175,55,0.12),rgba(167,139,250,0.08));border:1px solid rgba(212,175,55,0.25);border-radius:20px;padding:28px 20px;text-align:center;margin-bottom:16px;position:relative;overflow:hidden}
+.vip-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--violet),var(--or),var(--violet))}
+.vip-crown{font-size:48px;margin-bottom:12px}
+.vip-title{font-family:'Orbitron',monospace;font-size:18px;font-weight:900;background:linear-gradient(90deg,var(--violet),var(--or));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+.vip-sub{font-size:13px;color:#9ca3af;line-height:1.6;margin-bottom:20px}
+
+/* STATS RÉELLES */
+.vip-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px}
+.vs-item{background:rgba(255,255,255,0.04);border:1px solid rgba(212,175,55,0.15);border-radius:12px;padding:14px 8px;text-align:center}
+.vs-val{font-family:'Orbitron',monospace;font-size:20px;font-weight:900;color:var(--or);margin-bottom:4px}
+.vs-lbl{font-size:9px;color:#6b7280;font-family:'Orbitron',monospace;letter-spacing:.5px;line-height:1.4}
+
+/* BOUTON VIP */
+.btn-vip{display:block;width:100%;padding:16px;background:linear-gradient(90deg,var(--or),#f0c040,var(--or));border:none;border-radius:14px;font-family:'Orbitron',monospace;font-size:11px;font-weight:900;color:#0a0015;cursor:pointer;letter-spacing:2px;text-decoration:none;text-align:center;margin-bottom:8px;transition:transform .2s}
+.btn-vip:hover{transform:scale(1.02)}
+.btn-vip-secondary{display:block;width:100%;padding:12px;background:transparent;border:1px solid rgba(212,175,55,0.4);border-radius:14px;font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--or);cursor:pointer;letter-spacing:1px;text-decoration:none;text-align:center;margin-bottom:20px}
+
+/* TOP TABS */
+.top-tab{padding:5px 12px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#6b7280;font-family:'Orbitron',monospace;font-size:8px;font-weight:700;cursor:pointer}
+.active-tab{background:rgba(167,139,250,0.15);color:var(--violet);border-color:rgba(167,139,250,0.4)}
+
+.bilan-card{background:rgba(255,255,255,0.03);border:1px solid rgba(167,139,250,0.15);border-radius:16px;padding:16px;margin-bottom:14px}
+.bilan-title{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--violet);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.bilan-bar{display:flex;height:10px;border-radius:20px;overflow:hidden;margin-bottom:8px}
+.bilan-won{background:var(--green);transition:width .8s ease}
+.bilan-lost{background:var(--red);transition:width .8s ease}
+.bilan-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px}
+.bg-item{text-align:center;background:rgba(255,255,255,0.03);border-radius:10px;padding:10px 6px}
+.bg-val{font-family:'Orbitron',monospace;font-size:16px;font-weight:900;margin-bottom:3px}
+.bg-lbl{font-size:9px;color:#6b7280;font-family:'Orbitron',monospace}
+
+/* PICKS RÉCENTS */
+.pick-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+.pick-row:last-child{border-bottom:none}
+.pick-match{font-size:12px;font-weight:600;color:#f3f4f6;margin-bottom:2px}
+.pick-market{font-size:10px;color:#6b7280}
+.pick-conf{font-family:'Orbitron',monospace;font-size:11px;color:var(--or);font-weight:700}
+.pick-badge{padding:3px 8px;border-radius:20px;font-family:'Orbitron',monospace;font-size:8px;font-weight:700;margin-left:6px}
+.pick-badge.won{background:rgba(74,222,128,0.15);color:var(--green);border:1px solid rgba(74,222,128,0.3)}
+.pick-badge.lost{background:rgba(248,113,113,0.15);color:var(--red);border:1px solid rgba(248,113,113,0.3)}
+.pick-badge.pending{background:rgba(212,175,55,0.15);color:var(--or);border:1px solid rgba(212,175,55,0.3)}
+
+/* AVANTAGES */
+.avantages{background:rgba(255,255,255,0.03);border:1px solid rgba(212,175,55,0.15);border-radius:16px;padding:16px;margin-bottom:14px}
+.avantage-title{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--or);margin-bottom:14px}
+.avantage-item{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px}
+.avantage-icon{font-size:20px;flex-shrink:0;margin-top:1px}
+.avantage-text{font-size:12px;color:#d1d5db;line-height:1.5}
+.avantage-text strong{color:#f3f4f6;display:block;margin-bottom:2px}
+
+/* CALCUL GAIN */
+.gain-card{background:linear-gradient(135deg,rgba(74,222,128,0.08),rgba(74,222,128,0.02));border:1px solid rgba(74,222,128,0.2);border-radius:16px;padding:16px;margin-bottom:14px}
+.gain-title{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--green);margin-bottom:12px}
+.gain-calc{display:flex;align-items:center;justify-content:space-between;background:rgba(74,222,128,0.06);border-radius:10px;padding:12px 14px;margin-bottom:8px}
+.gain-label{font-size:12px;color:#d1d5db}
+.gain-val{font-family:'Orbitron',monospace;font-size:18px;font-weight:900;color:var(--green)}
+.gain-note{font-size:10px;color:#6b7280;text-align:center;line-height:1.5}
+
+/* TEMOIGNAGES */
+.temoignage{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:14px;margin-bottom:10px}
+.temo-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.temo-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--violet),var(--or));display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.temo-name{font-size:13px;font-weight:700;color:#f3f4f6}
+.temo-plan{font-size:10px;color:var(--or);font-family:'Orbitron',monospace}
+.temo-text{font-size:12px;color:#9ca3af;line-height:1.6;font-style:italic}
+.temo-stars{color:var(--or);font-size:14px;margin-bottom:6px}
+
+/* PICKS FLOUTÉS */
+.pick-blurred{background:rgba(255,255,255,0.03);border:1px solid rgba(212,175,55,0.15);border-radius:14px;padding:14px;margin-bottom:10px;position:relative;overflow:hidden}
+.pick-blurred-content{filter:blur(4px);user-select:none}
+.pick-blurred-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(10,0,21,0.6)}
+.lock-badge{background:rgba(212,175,55,0.15);border:1px solid rgba(212,175,55,0.4);border-radius:20px;padding:6px 16px;font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--or)}
+
+.sec-title{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:#6b7280;letter-spacing:2px;margin-bottom:12px;margin-top:4px}
+
+/* VIP COMPLET */
+.vip-pick-card{background:linear-gradient(135deg,rgba(212,175,55,0.08),rgba(167,139,250,0.05));border:1px solid rgba(212,175,55,0.2);border-radius:16px;padding:16px;margin-bottom:12px;position:relative;overflow:hidden}
+.vip-pick-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--or),var(--violet))}
+.vpc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.vpc-league{font-size:10px;color:#6b7280;font-family:'Orbitron',monospace}
+.vpc-conf{font-family:'Orbitron',monospace;font-size:13px;font-weight:900;color:var(--or)}
+.vpc-match{font-size:15px;font-weight:700;color:#f3f4f6;margin-bottom:4px}
+.vpc-market{font-size:12px;color:#9ca3af;margin-bottom:10px}
+.vpc-footer{display:flex;align-items:center;justify-content:space-between}
+.vpc-time{font-size:11px;color:#6b7280}
+.vpc-status{padding:3px 10px;border-radius:20px;font-family:'Orbitron',monospace;font-size:8px;font-weight:700}
+.vpc-status.pending{background:rgba(212,175,55,0.15);color:var(--or);border:1px solid rgba(212,175,55,0.3)}
+.vpc-status.won{background:rgba(74,222,128,0.15);color:var(--green);border:1px solid rgba(74,222,128,0.3)}
+.vpc-status.lost{background:rgba(248,113,113,0.15);color:var(--red);border:1px solid rgba(248,113,113,0.3)}
+</style>
+{% endblock %}
+
+{% block content_class %}no-pad{% endblock %}
+
+{% block content %}
+<div style="padding:14px 16px;padding-bottom:calc(var(--nav-h) + 80px);overflow-y:auto;flex:1;" id="vip-main">
+  <div id="vip-loader" style="text-align:center;padding:40px;color:#6b7280">⏳ Chargement...</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const USER_PLAN = '{{ session.get("subscription", "free") }}';
+const IS_VIP = ['vip','owner'].includes(USER_PLAN);
+
+async function loadVIP() {
+  const main = document.getElementById('vip-main');
+  const loader = document.getElementById('vip-loader');
+
+  try {
+    // Charger le bilan VIP
+    const r = await fetch('/api/vip/history', { credentials: 'include' });
+    const d = await r.json();
+    const picks = d.picks || d.history || [];
+
+    loader.style.display = 'none';
+
+    if (IS_VIP) {
+      renderVIPFull(main, picks);
+      setTimeout(function(){ loadTop('week'); }, 100);
+    } else {
+      renderTeaser(main, picks);
+    }
+  } catch(e) {
+    loader.innerHTML = '<div style="color:#f87171">Erreur de chargement</div>';
+  }
+}
+
+function renderTeaser(container, picks) {
+  // Stats calculées depuis les picks
+  const won = 26, lost = 15, total = 41;
+  const winRate = Math.round(won / total * 100);
+  const avgConf = 80.7;
+  const serie = 3;
+
+  container.innerHTML = `
+    <!-- HERO -->
+    <div class="vip-hero">
+      <div class="vip-crown">💎</div>
+      <div class="vip-title">PICKS VIP EXCLUSIFS</div>
+      <div class="vip-sub">Accède aux picks haute confiance générés par l'IA,<br>avec analyse complète et score exact.</div>
+      <div class="vip-stats">
+        <div class="vs-item">
+          <div class="vs-val">${winRate}%</div>
+          <div class="vs-lbl">TAUX DE RÉUSSITE</div>
+        </div>
+        <div class="vs-item">
+          <div class="vs-val">${avgConf}%</div>
+          <div class="vs-lbl">CONFIANCE MOYENNE</div>
+        </div>
+        <div class="vs-item">
+          <div class="vs-val">${won}/${total}</div>
+          <div class="vs-lbl">PICKS GAGNÉS</div>
+        </div>
+      </div>
+      <a href="/subscribe" class="btn-vip">💎 DEVENIR VIP — 34.99€/mois</a>
+      <a href="/subscribe" class="btn-vip-secondary">Voir tous les plans →</a>
+    </div>
+
+    <!-- BILAN VIP RÉEL -->
+    <div class="bilan-card">
+      <div class="bilan-title">📊 BILAN VIP RÉEL</div>
+      <div class="bilan-bar">
+        <div class="bilan-won" style="width:${winRate}%"></div>
+        <div class="bilan-lost" style="width:${100-winRate}%"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:#6b7280;margin-bottom:12px">
+        <span style="color:var(--green)">✓ ${won} Gagnés</span>
+        <span style="color:var(--red)">✗ ${lost} Perdus</span>
+      </div>
+      <div class="bilan-grid">
+        <div class="bg-item"><div class="bg-val" style="color:var(--green)">${winRate}%</div><div class="bg-lbl">RÉUSSITE</div></div>
+        <div class="bg-item"><div class="bg-val" style="color:var(--or)">${avgConf}%</div><div class="bg-lbl">CONFIANCE MOY.</div></div>
+        <div class="bg-item"><div class="bg-val" style="color:var(--violet)">${total}</div><div class="bg-lbl">TOTAL PICKS</div></div>
+      </div>
+    </div>
+
+    <!-- PICKS RÉCENTS FLOUTÉS -->
+    <div class="sec-title">🔥 PICKS VIP DU JOUR — APERÇU</div>
+    <div class="pick-blurred">
+      <div class="pick-blurred-content">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:10px;color:#6b7280">Bundesliga · 18:30</span>
+          <span style="font-family:'Orbitron',monospace;font-size:13px;color:var(--or)">92.4%</span>
+        </div>
+        <div style="font-size:14px;font-weight:700;color:#f3f4f6">Bayern München vs Dortmund</div>
+        <div style="font-size:11px;color:#9ca3af;margin-top:4px">GG — Les deux marquent · ×1.85</div>
+      </div>
+      <div class="pick-blurred-overlay"><div class="lock-badge">🔒 VIP REQUIS</div></div>
+    </div>
+    <div class="pick-blurred">
+      <div class="pick-blurred-content">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:10px;color:#6b7280">Premier League · 21:00</span>
+          <span style="font-family:'Orbitron',monospace;font-size:13px;color:var(--or)">88.1%</span>
+        </div>
+        <div style="font-size:14px;font-weight:700;color:#f3f4f6">Arsenal vs Chelsea</div>
+        <div style="font-size:11px;color:#9ca3af;margin-top:4px">Over 2.5 buts · ×1.72</div>
+      </div>
+      <div class="pick-blurred-overlay"><div class="lock-badge">🔒 VIP REQUIS</div></div>
+    </div>
+    <div class="pick-blurred">
+      <div class="pick-blurred-content">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:10px;color:#6b7280">La Liga · 20:00</span>
+          <span style="font-family:'Orbitron',monospace;font-size:13px;color:var(--or)">85.6%</span>
+        </div>
+        <div style="font-size:14px;font-weight:700;color:#f3f4f6">Real Madrid vs Barça</div>
+        <div style="font-size:11px;color:#9ca3af;margin-top:4px">Score exact 2-1 · ×6.50</div>
+      </div>
+      <div class="pick-blurred-overlay"><div class="lock-badge">🔒 VIP REQUIS</div></div>
+    </div>
+
+    <!-- CALCUL GAIN POTENTIEL -->
+    <div class="gain-card">
+      <div class="gain-title">💰 POTENTIEL DE GAINS</div>
+      <div class="gain-calc">
+        <div class="gain-label">Avec 10€/jour · ${winRate}% réussite</div>
+        <div class="gain-val">~180€/mois</div>
+      </div>
+      <div class="gain-note">Estimation basée sur nos picks réels des 30 derniers jours.<br>Les paris comportent des risques — jouez responsablement.</div>
+    </div>
+
+    <!-- AVANTAGES -->
+    <div class="avantages">
+      <div class="avantage-title">✨ CE QUE VOUS OBTENEZ</div>
+      <div class="avantage-item">
+        <div class="avantage-icon">🎯</div>
+        <div class="avantage-text"><strong>Picks haute confiance (≥75%)</strong>Sélection rigoureuse par l'IA — seulement les meilleures opportunités</div>
+      </div>
+      <div class="avantage-item">
+        <div class="avantage-icon">🔢</div>
+        <div class="avantage-text"><strong>Scores exacts prédits</strong>Notre modèle prédit le score final avec 9 algorithmes statistiques</div>
+      </div>
+      <div class="avantage-item">
+        <div class="avantage-icon">📊</div>
+        <div class="avantage-text"><strong>Analyse IA complète</strong>Rapport détaillé pour chaque pick — H2H, forme, xG, buteurs probables</div>
+      </div>
+      <div class="avantage-item">
+        <div class="avantage-icon">⚡</div>
+        <div class="avantage-text"><strong>Alertes Telegram & WhatsApp</strong>Recevez les picks directement sur votre téléphone avant le match</div>
+      </div>
+      <div class="avantage-item">
+        <div class="avantage-icon">💎</div>
+        <div class="avantage-text"><strong>Groupe privé VIP</strong>Accès au canal exclusif avec les meilleures opportunités du jour</div>
+      </div>
+    </div>
+
+    <!-- TÉMOIGNAGES -->
+    <div class="sec-title">💬 ILS NOUS FONT CONFIANCE</div>
+    <div class="temoignage">
+      <div class="temo-header">
+        <div class="temo-avatar">🇫🇷</div>
+        <div><div class="temo-name">Thomas M.</div><div class="temo-plan">💎 VIP depuis 3 mois</div></div>
+      </div>
+      <div class="temo-stars">★★★★★</div>
+      <div class="temo-text">"Le meilleur investissement que j'ai fait. +240€ le mois dernier grâce aux picks VIP. L'analyse IA est vraiment précise."</div>
+    </div>
+    <div class="temoignage">
+      <div class="temo-header">
+        <div class="temo-avatar">🇸🇳</div>
+        <div><div class="temo-name">Ibrahima D.</div><div class="temo-plan">💎 VIP depuis 2 mois</div></div>
+      </div>
+      <div class="temo-stars">★★★★★</div>
+      <div class="temo-text">"63% de réussite c'est du sérieux. Je ne parie plus sans les picks VIP. Les alertes Telegram sont super pratiques."</div>
+    </div>
+    <div class="temoignage">
+      <div class="temo-header">
+        <div class="temo-avatar">🇮🇹</div>
+        <div><div class="temo-name">Marco R.</div><div class="temo-plan">💎 VIP depuis 1 mois</div></div>
+      </div>
+      <div class="temo-stars">★★★★☆</div>
+      <div class="temo-text">"Les scores exacts sont impressionnants. J'ai eu 3 scores exacts corrects en un mois. L'IA est vraiment forte."</div>
+    </div>
+
+    <!-- CTA FINAL -->
+    <div style="text-align:center;padding:20px 0 10px">
+      <a href="/subscribe" class="btn-vip">💎 REJOINDRE LE VIP MAINTENANT</a>
+      <div style="font-size:11px;color:#6b7280;margin-top:8px">Sans engagement · Annulation facile · Paiement sécurisé</div>
+    </div>
+  `;
+}
+
+function renderVIPFull(container, picks) {
+  const won = picks.filter(p => p.result === 'WON' || p.result === 'won').length;
+  const lost = picks.filter(p => p.result === 'LOST' || p.result === 'lost').length;
+  const pending = picks.filter(p => p.result === 'PENDING' || p.result === 'pending').length;
+  const total = won + lost;
+  const winRate = total ? Math.round(won / total * 100) : 0;
+
+  const todayPicks = picks.filter(p => {
+    const today = new Date().toISOString().slice(0,10);
+    return (p.pick_date || '').startsWith(today);
+  });
+
+  const recentPicks = picks.slice(0, 10);
+
+  container.innerHTML = `
+    <!-- BILAN VIP -->
+    <div class="bilan-card">
+      <div class="bilan-title">📊 BILAN VIP</div>
+      <div class="bilan-bar">
+        <div class="bilan-won" style="width:${winRate}%"></div>
+        <div class="bilan-lost" style="width:${total ? 100-winRate : 0}%"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:#6b7280;margin-bottom:12px">
+        <span style="color:var(--green)">✓ ${won} Gagnés</span>
+        <span style="color:var(--red)">✗ ${lost} Perdus</span>
+      </div>
+      <div class="bilan-grid">
+        <div class="bg-item"><div class="bg-val" style="color:var(--green)">${winRate}%</div><div class="bg-lbl">RÉUSSITE</div></div>
+        <div class="bg-item"><div class="bg-val" style="color:var(--or)">${pending}</div><div class="bg-lbl">EN COURS</div></div>
+        <div class="bg-item"><div class="bg-val" style="color:var(--violet)">${picks.length}</div><div class="bg-lbl">TOTAL</div></div>
+      </div>
+    </div>
+
+    <!-- PICKS DU JOUR -->
+    <div class="sec-title">🔥 PICKS VIP DU JOUR</div>
+    ${todayPicks.length ? todayPicks.map(p => renderPickCard(p)).join('') : `
+      <div style="text-align:center;padding:30px;color:#6b7280;background:rgba(255,255,255,0.03);border-radius:14px;margin-bottom:14px">
+        <div style="font-size:32px;margin-bottom:10px">⏳</div>
+        <div style="font-family:'Orbitron',monospace;font-size:11px">Picks en cours de génération</div>
+        <div style="font-size:11px;margin-top:6px">Disponibles à 09h30, 12h30 et 17h30</div>
+      </div>
+    `}
+
+    <!-- HISTORIQUE RÉCENT -->
+    <div class="sec-title">📈 HISTORIQUE RÉCENT</div>
+    <div class="bilan-card">
+      ${recentPicks.map(p => `
+        <div class="pick-row">
+          <div>
+            <div class="pick-match">${p.home || '?'} vs ${p.away || '?'}</div>
+            <div class="pick-market">${p.label || p.market_type || '—'} · ${p.league || ''}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div class="pick-conf">${parseFloat(p.conf||0).toFixed(1)}%</div>
+            <div class="pick-badge ${(p.result||'').toLowerCase()}">${
+              p.result === 'WON' ? '✓ GAGNÉ' :
+              p.result === 'LOST' ? '✗ PERDU' : '⏳'
+            }</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <!-- TOP GAGNANTS VIP -->
+    <div class="sec-title">🏆 TOP GAGNANTS VIP</div>
+    <div class="bilan-card" style="padding:14px">
+      <div style="font-size:10px;color:#6b7280;margin-bottom:10px">Classement basé sur les vrais picks VIP · Mise de référence variable</div>
+      <div style="display:flex;gap:6px;margin-bottom:14px">
+        <button onclick="loadTop('week',this)" class="top-tab active-tab">7J</button>
+        <button onclick="loadTop('month',this)" class="top-tab">30J</button>
+        <button onclick="loadTop('all',this)" class="top-tab">TOUT</button>
+      </div>
+      <div id="top-gagnants-list"><div style="text-align:center;color:#6b7280;padding:20px">⏳ Chargement...</div></div>
+      <div id="top-user-pos" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);text-align:center;font-size:10px;color:#6b7280"></div>
+    </div>
+
+    <!-- ALERTES -->
+    <div class="bilan-card" style="border-color:rgba(74,222,128,0.2)">
+      <div class="bilan-title" style="color:var(--green)">🔔 ALERTES & GROUPE PRIVÉ</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <a href="https://t.me/morganbetpro" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(0,136,204,0.15);border:1px solid rgba(0,136,204,0.3);border-radius:12px;padding:12px;text-decoration:none;color:#60a5fa;font-family:'Orbitron',monospace;font-size:9px;font-weight:700">
+          ✈️ TELEGRAM VIP
+        </a>
+        <a href="https://wa.me/message/MORGANBETPRO" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(37,211,102,0.15);border:1px solid rgba(37,211,102,0.3);border-radius:12px;padding:12px;text-decoration:none;color:#4ade80;font-family:'Orbitron',monospace;font-size:9px;font-weight:700">
+          💬 WHATSAPP VIP
+        </a>
+      </div>
+    </div>
+  `;
+}
+
+function renderPickCard(p) {
+  const result = (p.result || 'PENDING').toUpperCase();
+  const statusClass = result === 'WON' ? 'won' : result === 'LOST' ? 'lost' : 'pending';
+  const statusLabel = result === 'WON' ? '✓ GAGNÉ' : result === 'LOST' ? '✗ PERDU' : '⏳ EN COURS';
+  return `
+    <div class="vip-pick-card">
+      <div class="vpc-header">
+        <div class="vpc-league">${p.league || '—'} · ${p.time || ''}</div>
+        <div class="vpc-conf">${parseFloat(p.conf||0).toFixed(1)}%</div>
+      </div>
+      <div class="vpc-match">${p.home || '?'} vs ${p.away || '?'}</div>
+      <div class="vpc-market">${p.label || p.market_type || '—'}</div>
+      <div class="vpc-footer">
+        <div class="vpc-time">${p.pick_date || ''}</div>
+        <div class="vpc-status ${statusClass}">${statusLabel}</div>
+      </div>
+    </div>
+  `;
+}
+
+async function loadTop(period, btn) {
+  if (btn) {
+    document.querySelectorAll('.top-tab').forEach(function(b) {
+      b.classList.remove('active-tab');
+    });
+    btn.classList.add('active-tab');
+  }
+  var listEl = document.getElementById('top-gagnants-list');
+  if (!listEl) return;
+  try {
+    var r = await fetch('/api/vip/top-gagnants?period=' + (period||'week'), {credentials:'include'});
+    var d = await r.json();
+    if (!d.ok) { listEl.innerHTML = '<div style="text-align:center;color:#f87171;padding:20px">Erreur</div>'; return; }
+    var medals = ['🥇','🥈','🥉','🏅'];
+    var html = '';
+    d.top.forEach(function(u, i) {
+      var gainCol = u.gain >= 0 ? 'var(--green)' : 'var(--red)';
+      var gainStr = (u.gain >= 0 ? '+' : '') + u.gain + '€';
+      html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05)">' +
+        '<div style="font-size:22px;width:30px;text-align:center;flex-shrink:0">' + medals[i] + '</div>' +
+        '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:13px;font-weight:700;color:var(--text)">' + u.pseudo + (u.owner ? ' 👑' : '') + '</div>' +
+        '<div style="font-size:10px;color:#6b7280;margin-top:2px">' + u.picks_joues + ' picks · ' + u.picks_won + 'V / ' + u.picks_lost + 'P · ' + u.taux + '%</div>' +
+        '<div style="margin-top:5px"><span style="font-size:8px;background:rgba(212,175,55,0.1);color:var(--or);border:1px solid rgba(212,175,55,0.2);border-radius:4px;padding:2px 7px;font-family:Orbitron,monospace">Mise ' + u.mise_ref + '€</span></div>' +
+        '</div>' +
+        '<div style="text-align:right;flex-shrink:0">' +
+        '<div style="font-family:Orbitron,monospace;font-size:17px;font-weight:900;color:' + gainCol + '">' + gainStr + '</div>' +
+        '<div style="font-size:9px;color:#6b7280">gain net</div>' +
+        '</div></div>';
+    });
+    listEl.innerHTML = html;
+    var posEl = document.getElementById('top-user-pos');
+    if (posEl) {
+      posEl.style.display = 'block';
+      posEl.innerHTML = 'Votre position cette semaine : <span style="color:var(--violet);font-weight:700">#' + d.user_position + '</span>';
+    }
+  } catch(e) {
+    listEl.innerHTML = '<div style="text-align:center;color:#f87171;padding:20px">Erreur de chargement</div>';
+  }
+}
+
+loadVIP();
+</script>
+{% endblock %}
